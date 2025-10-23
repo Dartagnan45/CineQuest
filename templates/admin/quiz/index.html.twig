@@ -1,0 +1,112 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration des Quiz
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5">
+		<div class="d-flex justify-content-between align-items-center mb-5">
+			<div>
+				<h1 class="main-title">🎮 Administration des Quiz</h1>
+				<p class="text-light">Gérez tous vos quiz cinéma</p>
+			</div>
+			<a href="{{ path('admin_quiz_new') }}" class="btn btn-primary btn-lg">
+				<i class="fas fa-plus-circle me-2"></i>Créer un nouveau quiz
+			</a>
+		</div>
+
+		{% if quizzes is empty %}
+			<div class="text-center py-5">
+				<i class="fas fa-gamepad fa-4x text-muted mb-4"></i>
+				<h3 class="text-muted">Aucun quiz créé</h3>
+				<p class="text-light mb-4">Commencez par créer votre premier quiz !</p>
+				<a href="{{ path('admin_quiz_new') }}" class="btn btn-primary btn-lg">
+					<i class="fas fa-plus-circle me-2"></i>Créer mon premier quiz
+				</a>
+			</div>
+		{% else %}
+			<div class="row g-4">
+				{% for quiz in quizzes %}
+					<div class="col-md-6 col-lg-4">
+						<div class="card bg-dark h-100 border-0 shadow-sm hover-shadow">
+							<div class="card-body">
+								<div class="d-flex justify-content-between align-items-start mb-3">
+									<h5 class="card-title mb-0">{{ quiz.title }}</h5>
+									<span class="badge bg-{{
+											                                    quiz.difficulty == 'facile' ? 'success' :
+											                                    quiz.difficulty == 'moyen' ? 'warning' :
+											                                    quiz.difficulty == 'difficile' ? 'danger' : 'dark'
+											                                }}">
+										{% if quiz.difficulty == 'facile' %}🌱
+											{% elseif quiz.difficulty == 'moyen' %}⚡
+											{% elseif quiz.difficulty == 'difficile' %}🔥
+											{% else %}💀
+										{% endif %}
+										{{ quiz.difficulty|capitalize }}
+									</span>
+								</div>
+
+								<div class="mb-3">
+									<small class="text-light">
+										<i class="fas fa-tag me-1"></i>
+										{{ quiz.theme|capitalize }}
+									</small>
+									<br>
+									<small class="text-light">
+										<i class="fas fa-question-circle me-1"></i>
+										{{ quiz.questions|length }}
+										questions
+									</small>
+								</div>
+
+								<div class="btn-group w-100" role="group">
+									<a href="{{ path('admin_quiz_preview', {id: quiz.id}) }}" class="btn btn-sm btn-outline-light" title="Aperçu">
+										<i class="fas fa-eye"></i>
+									</a>
+									<a href="{{ path('admin_quiz_edit', {id: quiz.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+										<i class="fas fa-edit"></i>
+									</a>
+									<form method="post" action="{{ path('admin_quiz_duplicate', {id: quiz.id}) }}" class="d-inline">
+										<button type="submit" class="btn btn-sm btn-outline-info" title="Dupliquer">
+											<i class="fas fa-copy"></i>
+										</button>
+									</form>
+									<button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ quiz.id }}" title="Supprimer">
+										<i class="fas fa-trash"></i>
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					{# Modal de confirmation de suppression #}
+					<div class="modal fade" id="deleteModal{{ quiz.id }}" tabindex="-1">
+						<div class="modal-dialog">
+							<div class="modal-content bg-dark">
+								<div class="modal-header border-0">
+									<h5 class="modal-title">Confirmer la suppression</h5>
+									<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+								</div>
+								<div class="modal-body">
+									Êtes-vous sûr de vouloir supprimer le quiz
+									<strong>{{ quiz.title }}</strong>
+									?
+									                                Cette action est irréversible.
+								</div>
+								<div class="modal-footer border-0">
+									<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+									<form method="post" action="{{ path('admin_quiz_delete', {id: quiz.id}) }}" class="d-inline">
+										<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ quiz.id) }}">
+										<button type="submit" class="btn btn-danger">
+											<i class="fas fa-trash me-1"></i>Supprimer
+										</button>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+	</div>
+{% endblock %}

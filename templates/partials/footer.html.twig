@@ -1,0 +1,16 @@
+{# templates/partials/footer.html.twig #}
+
+<footer class="footer mt-auto py-3 bg-dark text-white-50">
+	<div class="container text-center">
+		<span class="text-muted">
+			&copy;
+			{% if current_year is defined %}
+				{{ current_year }}
+			{% else %}
+				{{ "now"|date("Y") }}
+			{% endif %}
+			CinéQuest.
+			            Ce site a été créé par Julien Boncoeur avec amour ❤️.
+		</span>
+	</div>
+</footer>

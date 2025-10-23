@@ -1,0 +1,68 @@
+# ------------------------------------------------------------------------------
+# CinéQuest - Symfony 7
+# Fichier .htaccess pour hébergement Apache (ex: o2switch)
+# ------------------------------------------------------------------------------
+
+# Active la réécriture d'URL
+<IfModule mod_rewrite.c>
+    Options -MultiViews
+    RewriteEngine On
+
+    # Si un fichier ou dossier physique existe, on y accède directement
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Sinon, on redirige toutes les requêtes vers index.php
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# Sécurité de base
+# ------------------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+  # Interdit l'affichage de ton site dans un cadre sur un autre site
+  Header always set X-Frame-Options "SAMEORIGIN"
+
+  # Empêche le navigateur de deviner le type de contenu
+  Header always set X-Content-Type-Options "nosniff"
+
+  # Politique de référence (protection des données en lien sortant)
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+  # Interdit l'utilisation du micro, caméra ou géolocalisation
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+
+  # Content Security Policy : contrôle les sources autorisées
+  Header set Content-Security-Policy "default-src 'self'; img-src 'self' https: data:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; font-src 'self' https: data:"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# Performance
+# ------------------------------------------------------------------------------
+
+# Compression Gzip si disponible
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml
+</IfModule>
+
+# Cache navigateur pour les assets statiques
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 year"
+  ExpiresByType image/jpeg "access plus 1 year"
+  ExpiresByType image/png "access plus 1 year"
+  ExpiresByType image/gif "access plus 1 year"
+  ExpiresByType text/css "access plus 1 month"
+  ExpiresByType application/javascript "access plus 1 month"
+  ExpiresDefault "access plus 7 days"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# Interdiction d'accès à certains fichiers
+# ------------------------------------------------------------------------------
+
+<FilesMatch "(^\.env|composer\.json|composer\.lock|package\.json|symfony\.lock)">
+  Require all denied
+</FilesMatch>

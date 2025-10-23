@@ -1,0 +1,56 @@
+// assets/styles/components/_dropdown-lists.scss
+
+// Style pour les items du dropdown "Ajouter à une liste"
+.dropdown-item {
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    // Item déjà dans une liste (peut être retiré)
+    &.in-list {
+        background-color: rgba(40, 167, 69, 0.1);
+        cursor: pointer !important;
+
+        i {
+            color: #28a745;
+        }
+
+        &:hover {
+            background-color: rgba(220, 53, 69, 0.15);
+
+            i {
+                color: #dc3545;
+            }
+        }
+    }
+
+    // Animation lors du processing
+    &.processing {
+        opacity: 0.6;
+        pointer-events: none;
+
+        &::after {
+            content: "...";
+            animation: dots 1s steps(3, end) infinite;
+        }
+    }
+}
+
+@keyframes dots {
+    0%, 20% {
+        content: ".";
+    }
+    40% {
+        content: "..";
+    }
+    60%, 100% {
+        content: "...";
+    }
+}
+
+// Container du dropdown "Ajouter à une liste"
+.add-to-list-container {
+    .dropdown-menu {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+}

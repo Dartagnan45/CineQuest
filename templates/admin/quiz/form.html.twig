@@ -1,0 +1,207 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ isEdit ? 'Modifier' : 'Créer' }}
+	un Quiz
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5">
+		<div class="row justify-content-center">
+			<div class="col-lg-10">
+				<div class="d-flex justify-content-between align-items-center mb-4">
+					<h1 class="main-title">
+						{{ isEdit ? '✏️ Modifier' : '➕ Créer' }}
+						un Quiz
+					</h1>
+					<a href="{{ path('admin_quiz_index') }}" class="btn btn-outline-secondary">
+						<i class="fas fa-arrow-left me-2"></i>Retour
+					</a>
+				</div>
+
+				<div class="card bg-dark border-0 shadow-lg">
+					<div class="card-body p-4">
+						{{ form_start(form, {'attr': {'id': 'quiz-form'}}) }}
+
+						<div class="row mb-4">
+							<div class="col-md-12 mb-3">
+								{{ form_row(form.title) }}
+							</div>
+							<div class="col-md-6 mb-3">
+								{{ form_row(form.theme) }}
+							</div>
+							<div class="col-md-6 mb-3">
+								{{ form_row(form.difficulty) }}
+							</div>
+						</div>
+
+						<hr class="my-4">
+
+						<div class="d-flex justify-content-between align-items-center mb-3">
+							<h4 class="mb-0">
+								<i class="fas fa-list-ol me-2"></i>Questions
+							</h4>
+							<button type="button" class="btn btn-success btn-sm" id="add-question" data-collection-holder-class="questions-collection">
+								<i class="fas fa-plus-circle me-1"></i>Ajouter une question
+							</button>
+						</div>
+
+						<div id="questions-container" class="questions-collection" data-prototype="{{ form_widget(form.questions.vars.prototype)|e('html_attr') }}" data-index="{{ form.questions|length }}">
+							{% for question in form.questions %}
+								<div class="card bg-secondary mb-3 question-item">
+									<div class="card-header d-flex justify-content-between align-items-center">
+										<h6 class="mb-0">
+											<i class="fas fa-question-circle me-2"></i>
+											Question #<span class="question-number">{{ loop.index }}</span>
+										</h6>
+										<button type="button" class="btn btn-sm btn-danger remove-question">
+											<i class="fas fa-trash"></i>
+										</button>
+									</div>
+									<div class="card-body">
+										{{ form_row(question.text) }}
+
+										<div class="row">
+											<div class="col-md-8 mb-3">
+												<label class="form-label">Réponses possibles</label>
+												<div class="choices-input-wrapper">
+													<input type="text" class="form-control choices-input" placeholder="Tapez une réponse et pressez Entrée" data-target="{{ question.choices.vars.id }}">
+													<div class="choices-tags mt-2" id="tags-{{ question.choices.vars.id }}"></div>
+												</div>
+												{{ form_widget(question.choices, {'attr': {'class': 'd-none'}}) }}
+												<small class="form-text text-muted">
+													Entrez exactement 4 réponses possibles
+												</small>
+											</div>
+											<div class="col-md-4 mb-3">
+												{{ form_row(question.correctAnswer) }}
+											</div>
+										</div>
+
+										{{ form_row(question.explanation) }}
+									</div>
+								</div>
+							{% endfor %}
+						</div>
+
+						<div class="d-flex justify-content-between mt-4">
+							<a href="{{ path('admin_quiz_index') }}" class="btn btn-secondary">
+								<i class="fas fa-times me-1"></i>Annuler
+							</a>
+							<button type="submit" class="btn btn-primary btn-lg">
+								<i class="fas fa-save me-2"></i>
+								{{ isEdit ? 'Enregistrer les modifications' : 'Créer le quiz' }}
+							</button>
+						</div>
+
+						{{ form_end(form) }}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<style>
+		.choices-tags {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+		}
+
+		.choice-tag {
+			display: inline-flex;
+			align-items: center;
+			padding: 0.25rem 0.75rem;
+			background: #0d6efd;
+			color: white;
+			border-radius: 20px;
+			font-size: 0.875rem;
+		}
+
+		.choice-tag button {
+			background: none;
+			border: none;
+			color: white;
+			margin-left: 0.5rem;
+			cursor: pointer;
+			padding: 0;
+			font-size: 1rem;
+		}
+
+		.question-item {
+			animation: fadeIn 0.3s;
+		}
+
+		@keyframes fadeIn {
+			from {
+				opacity: 0;
+				transform: translateY(-10px);
+			}
+			to {
+				opacity: 1;
+				transform: translateY(0);
+			}
+		}
+	</style>
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+const questionsContainer = document.getElementById('questions-container');
+const addButton = document.getElementById('add-question');
+let questionIndex = parseInt(questionsContainer.dataset.index) || 0;
+
+// Gestion de l'ajout de questions
+addButton.addEventListener('click', function () {
+const prototype = questionsContainer.dataset.prototype;
+const newForm = prototype.replace(/__name__/g, questionIndex);
+
+const div = document.createElement('div');
+div.innerHTML = newForm;
+const questionItem = div.firstElementChild;
+
+questionItem.classList.add('card', 'bg-secondary', 'mb-3', 'question-item');
+questionItem.innerHTML = `
+					<div class="card-header d-flex justify-content-between align-items-center">
+						<h6 class="mb-0">
+							<i class="fas fa-question-circle me-2"></i>
+							Question #<span class="question-number">${
+questionIndex + 1
+}</span>
+						</h6>
+						<button type="button" class="btn btn-sm btn-danger remove-question">
+							<i class="fas fa-trash"></i>
+						</button>
+					</div>
+					<div class="card-body">
+						${
+div.innerHTML
+}
+					</div>
+				`;
+
+questionsContainer.appendChild(questionItem);
+questionIndex++;
+updateQuestionNumbers();
+});
+
+// Gestion de la suppression
+questionsContainer.addEventListener('click', function (e) {
+if (e.target.closest('.remove-question')) {
+const questionItem = e.target.closest('.question-item');
+if (confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) {
+questionItem.remove();
+updateQuestionNumbers();
+}
+}
+});
+
+// Mise à jour des numéros de questions
+function updateQuestionNumbers() {
+const questions = questionsContainer.querySelectorAll('.question-item');
+questions.forEach((question, index) => {
+const numberSpan = question.querySelector('.question-number');
+if (numberSpan) {
+numberSpan.textContent = index + 1;
+}
+});
+}
+});
+	</script>
+{% endblock %}

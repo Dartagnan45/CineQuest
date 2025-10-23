@@ -1,0 +1,39 @@
+{# templates/bundles/TwigBundle/Exception/error.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block title %}Oups ! Une erreur est survenue
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5 text-center error-page-content">
+		<h1 class="display-3 text-danger mb-4">
+			<i class="fas fa-exclamation-triangle"></i>
+			Oups ! Une erreur est survenue
+		</h1>
+
+		<p class="lead mb-4">
+			Nous sommes désolés, mais quelque chose s'est mal passé sur nos serveurs.
+		</p>
+
+		<p class="mb-4 error">
+			{# Le code 'status_code' et 'status_text' est fourni par Symfony #}
+			Erreur
+			{{ status_code | default('inconnue') }}
+			:
+			{{ status_text | default('Une erreur interne est survenue.') }}
+		</p>
+
+		{# Bouton pour revenir à la page de sélection #}
+		<a href="{{ path('home') }}" class="btn btn-success btn-lg me-2">
+			<i class="fas fa-home"></i>
+			Retour à la sélection
+		</a>
+
+		{# Optionnel : un bouton pour réessayer #}
+		<a href="{{ app.request.requesturi }}" class="btn btn-warning btn-lg">
+			<i class="fas fa-redo"></i>
+			Réessayer
+		</a>
+	</div>
+{% endblock %}

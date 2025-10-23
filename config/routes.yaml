@@ -1,0 +1,16 @@
+# config/routes.yaml
+
+# Cette ligne charge les routes définies dans vos contrôleurs (ex: /selection, /cinema)
+controllers:
+    resource:
+        path: ../src/Controller/
+        namespace: App\Controller
+    type: attribute
+
+# --- AJOUT CRUCIAL ---
+# Cette instruction, standard dans Symfony 7, dit au routeur de scanner et de charger
+# TOUS les fichiers de configuration de routes qui se trouvent dans le dossier "config/routes/".
+# C'est ce qui permettra de charger les routes de déconnexion et de la barre de débogage.
+_main:
+    resource: routes/
+    type: directory

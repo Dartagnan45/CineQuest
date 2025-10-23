@@ -1,0 +1,98 @@
+// =============================================================================
+// VARIABLES SCSS - WhatToWatch
+// =============================================================================
+
+// Couleurs de base
+$color-jaffa: #F47A31; // Orange principal
+$color-turquoise: #37D4CF; // Turquoise
+$color-gray-dark: #2E3131; // Gris foncé
+$color-white: #FFFFFF;
+$color-black: #000000;
+$primary: #37d4cf; // Votre couleur turquoise
+
+// Couleurs principales du projet
+$primary-color: $color-jaffa;
+$secondary-color: $color-turquoise;
+$primary-background-color: $color-gray-dark;
+$primary-text-color: $color-white;
+
+// Couleurs des titres
+$title-color: $color-turquoise;
+
+// Couleurs des liens - Utilisation de mix() au lieu de lighten()
+$link-color: $color-turquoise;
+$link-hover-color: mix(white, $color-jaffa, 35%); // Équivalent à lighten($color-jaffa, 15%)
+
+// Typographie
+$font-title: 'Righteous', sans-serif;
+$font-body: 'Vollkorn', serif;
+$font-title-h1: 'Luckiest Guy', cursive;
+
+
+// Tailles de police
+$font-size-base: 1rem;
+$font-size-large: 1.25rem;
+$font-size-small: 0.875rem;
+
+// Espacements
+$spacing-xs: 0.5rem;
+$spacing-sm: 1rem;
+$spacing-md: 1.5rem;
+$spacing-lg: 2rem;
+$spacing-xl: 3rem;
+
+// Border radius
+$border-radius-sm: 5px;
+$border-radius-md: 10px;
+$border-radius-lg: 15px;
+$border-radius-full: 50%;
+
+// Ombres
+$shadow-sm: 0 2px 5px rgba($color-black, 0.1);
+$shadow-md: 0 4px 12px rgba($color-black, 0.2);
+$shadow-lg: 0 10px 40px rgba($color-black, 0.3);
+
+// Transitions
+$transition-fast: 0.2s ease-in-out;
+$transition-normal: 0.3s ease-in-out;
+$transition-slow: 0.5s ease-in-out;
+
+// Breakpoints (optionnel, Bootstrap en a déjà)
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+$breakpoint-xxl: 1400px;
+
+// Z-index layers
+$z-index-base: 1;
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// Cartes de films
+$card-min-width: 320px;
+$card-max-width: 400px;
+$card-image-height: 480px;
+$card-border-radius: $border-radius-md;
+$card-shadow: $shadow-md;
+$card-shadow-hover: $shadow-lg;
+
+// Rating badge
+$rating-size: 60px;
+$rating-border-width: 3px;
+$rating-background: $color-turquoise;
+
+// Navbar
+$navbar-height: 70px;
+$navbar-background: $primary-color;
+$navbar-text-color: $color-white;
+
+// Hero section
+$hero-overlay-opacity: 0.6;
+$hero-min-height: 100vh;

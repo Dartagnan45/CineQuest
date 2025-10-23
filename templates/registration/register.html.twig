@@ -1,0 +1,59 @@
+{# templates/registration/register.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Inscription
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="register-form-container">
+					<h1 class="h3 mb-3 fw-normal text-center main-title">Inscription</h1>
+
+					{# 🎯 MESSAGES FLASH ICI (au-dessus du formulaire) #}
+					{% for label, messages in app.flashes %}
+						{% for message in messages %}
+							<div class="alert alert-{{ label == 'error' ? 'danger' : (label == 'success' ? 'success' : label) }} alert-dismissible fade show" role="alert">
+								{{ message|raw }}
+								<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+							</div>
+						{% endfor %}
+					{% endfor %}
+
+					{{ form_start(registrationForm) }}
+
+					<div class="form-floating mb-3">
+						{{ form_widget(registrationForm.email, {'attr': {'class': 'form-control'}}) }}
+						<label for="{{ registrationForm.email.vars.id }}">Email</label>
+						{{ form_errors(registrationForm.email) }}
+					</div>
+
+					<div class="form-floating mb-3">
+						{{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control'}}) }}
+						<label for="{{ registrationForm.plainPassword.vars.id }}">Mot de passe</label>
+						{{ form_errors(registrationForm.plainPassword) }}
+					</div>
+
+					<div class="form-check text-start my-3">
+						{{ form_widget(registrationForm.agreeTerms) }}
+						<label class="form-check-label" for="{{ registrationForm.agreeTerms.vars.id }}">
+							Accepter les conditions
+						</label>
+						{{ form_errors(registrationForm.agreeTerms) }}
+					</div>
+
+					<button type="submit" class="btn btn-lg btn-primary w-100">S'inscrire</button>
+
+					<div class="text-center mt-4">
+						<p>Déjà un compte ?
+							<a href="{{ path('app_login') }}">Connectez-vous !</a>
+						</p>
+					</div>
+
+					{{ form_end(registrationForm) }}
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

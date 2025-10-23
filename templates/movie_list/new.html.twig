@@ -1,0 +1,27 @@
+{# templates/movie_list/new.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer une nouvelle liste
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5">
+		<div class="row justify-content-center">
+			<div
+				class="col-md-6">
+				{# On réutilise le conteneur des autres formulaires pour un style cohérent #}
+				<div class="login-form-container">
+					<h1 class="main-title text-center mb-4">Nouvelle Liste</h1>
+
+					{{ include('movie_list/_form.html.twig') }}
+
+					<div class="text-center mt-4">
+						<a href="{{ path('app_movie_list_index') }}" class="btn btn-outline-secondary">
+							<i class="fas fa-arrow-left me-2"></i>Retour à mes listes
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

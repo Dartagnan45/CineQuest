@@ -1,0 +1,13 @@
+# config/packages/csrf.yaml (Version fusionnée)
+framework:
+    form:
+        csrf_protection:
+            token_id: submit
+
+    csrf_protection:
+        # Ajouté depuis ux_turbo.yaml
+        check_header: true
+        stateless_token_ids:
+            - submit
+            - authenticate
+            - logout

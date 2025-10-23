@@ -1,0 +1,145 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<div class="container-fluid">
+<a class="navbar-brand align-items-center" href="{{ path('landing') }}">
+			<img src="{{ asset('build/icons/icone-cinequest.png') }}" alt="CinéQuest" class="logo-icon me-2">
+			<span class="brand-text">CinéQuest</span>
+		</a>
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+				<li class="nav-item">
+					<a class="nav-link" href="{{ path('home') }}">
+						<i class="fas fa-home me-1"></i>Sélection
+					</a>
+				</li>
+
+				<!-- Dropdown Catégories -->
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+						<i class="fas fa-list me-1"></i>Catégories
+					</a>
+					<ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+						{% if allGenres is defined %}
+							{% for genre in allGenres.movie_genres %}
+								<li>
+									<a class="dropdown-item d-flex align-items-center" href="{{ path('movies_show', {'genreId': genre.id}) }}">
+										<i class="fas {{ genre.icon }} dropdown-icon"></i>
+										<span>{{ genre.name }}</span>
+									</a>
+								</li>
+							{% endfor %}
+							{% if allGenres.tv_genres is not empty %}
+								<li><hr class="dropdown-divider"></li>
+							{% endif %}
+							{% for genre in allGenres.tv_genres %}
+								<li>
+									<a class="dropdown-item d-flex align-items-center" href="{{ path('movies_show', {'genreId': genre.id}) }}">
+										<i class="fas {{ genre.icon }} dropdown-icon"></i>
+										<span>{{ genre.name }}</span>
+									</a>
+								</li>
+							{% endfor %}
+						{% endif %}
+					</ul>
+				</li>
+
+				<!-- Nouveau lien Quiz -->
+				<li class="nav-item">
+					<a class="nav-link" href="{{ path('quiz_index') }}">
+						<i class="fas fa-gamepad me-1"></i>Quiz
+						<span class="badge bg-danger ms-1" style="font-size: 0.6rem;">NEW</span>
+					</a>
+				</li>
+
+				{% if app.user %}
+					<!-- Menu utilisateur connecté -->
+					<li class="nav-item">
+						<a class="nav-link" href="{{ path('app_movie_list_index') }}">
+							<i class="fas fa-bookmark me-1"></i>Mes Listes
+						</a>
+					</li>
+
+					<!-- Dropdown profil utilisateur -->
+					<li class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+							<i class="fas fa-user-circle me-1"></i>
+							{{ app.user.email|split('@')[0] }}
+						</a>
+						<ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+							<li>
+								<a class="dropdown-item" href="{{ path('app_movie_list_index') }}">
+									<i class="fas fa-list me-2"></i>Mes listes
+								</a>
+							</li>
+							<li><hr class="dropdown-divider"></li>
+							<li>
+								<a class="dropdown-item" href="{{ path('app_logout') }}">
+									<i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+								</a>
+							</li>
+						</ul>
+					</li>
+
+					<!-- Badge admin si rôle ADMIN -->
+					{% if is_granted('ROLE_ADMIN') %}
+						<li class="nav-item">
+							<a class="nav-link text-warning" href="{{ path('admin_quiz_index') }}" title="Administration">
+								<i class="fas fa-crown me-1"></i>Admin
+							</a>
+						</li>
+					{% endif %}
+				{% else %}
+					<!-- Boutons connexion/inscription pour utilisateurs non connectés -->
+					<li class="nav-item">
+						<a href="{{ path('app_login') }}" class="btn btn-outline-light ms-2">
+							<i class="fas fa-user-circle me-1"></i>Connexion
+						</a>
+					</li>
+					<li class="nav-item">
+						<a href="{{ path('app_register') }}" class="btn btn-inscription ms-2">
+							<i class="fas fa-user-plus me-1"></i>Inscription
+						</a>
+					</li>
+				{% endif %}
+			</ul>
+
+			<!-- Barre de recherche -->
+			<div class="search-container d-flex align-items-center ms-lg-3">
+				<i class="fas fa-search search-icon" id="search-toggle" aria-label="Ouvrir la recherche"></i>
+				<form class="d-flex search-form" id="search-form" action="{{ path('search_results') }}" method="get" autocomplete="off" novalidate>
+					<div class="position-relative">
+						<input class="form-control me-2" name="q" type="search" placeholder="Rechercher un film, une série..." aria-label="Rechercher" id="search-input">
+						<div id="search-results" class="dropdown-menu"></div>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</nav>
+
+<style>
+	/* Style pour le badge NEW */
+	.nav-link .badge {
+		animation: pulse-badge 2s infinite;
+	}
+
+	@keyframes pulse-badge {
+		0,
+		100% {
+			transform: scale(1);
+			opacity: 1;
+		}
+		50% {
+			transform: scale(1.1);
+			opacity: 0.8;
+		}
+	}
+
+	/* Style pour le lien admin */
+	.nav-link.text-warning:hover {
+		color: #ffc107 !important;
+		text-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+	}
+</style>

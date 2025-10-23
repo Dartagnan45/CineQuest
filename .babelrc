@@ -1,0 +1,9 @@
+{
+  "presets": [
+    ["@babel/preset-env", { "useBuiltIns": "usage", "corejs": "3.38" }]
+  ],
+  "plugins": [
+    "@babel/plugin-transform-class-properties",
+    "@babel/plugin-transform-private-methods"
+  ]
+}

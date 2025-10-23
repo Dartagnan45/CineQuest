@@ -1,0 +1,13 @@
+{# templates/movie_list/_form.html.twig #}
+{{ form_start(form) }}
+
+<div class="form-floating mb-3">
+	<div class="name-label">
+		<label for="{{ form.name.vars.id }}">Nom de la liste</label>
+	</div>
+	{{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+</div>
+
+<button class="btn btn-success w-100">{{ button_label|default('Enregistrer') }}</button>
+
+{{ form_end(form) }}

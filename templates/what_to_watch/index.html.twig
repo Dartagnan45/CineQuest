@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ title }}
+{% endblock %}
+
+{% block body %}
+	<div class="text-center mb-5">
+		<h2 class="main-title display-5">{{ title }}</h2>
+	</div>
+
+	{% if sorted_categories is not empty or special_categories is not empty %}
+		{% set total_categories = (sorted_categories|length) + (special_categories|length) %}
+		{% set card_width = 280 %}
+		{% set card_margin = 20 %}
+		{% set total_cards_width = (card_width + card_margin) * total_categories %}
+
+		<div class="endless-carousel-container">
+			<button class="carousel-nav-btn carousel-prev" aria-label="Défiler vers la gauche" type="button"></button>
+			<button class="carousel-nav-btn carousel-next" aria-label="Défiler vers la droite" type="button"></button>
+
+			<div class="endless-carousel-track" style="width: {{ total_cards_width * 2 }}px;">
+				{% for i in 0..1 %}
+					{# 1. On affiche d'abord les catégories triées (films) #}
+					{% for category in sorted_categories %}
+						<div class="carousel-card" {% if i > 0 %} aria-hidden="true" {% endif %}>
+							<a href="{{ path('movies_show', {'genreId': category.id}) }}" {% if i > 0 %} tabindex="-1" {% endif %}>
+								{% set category_slug = category.name|lower|replace({' ': '-', 'science-fiction': 'science-fiction'}) %}
+								<img src="{{ asset('build/images/' ~ category_slug ~ '.jpg') | default(asset('build/images/cine-room.jpeg')) }}" alt="{{ category.name }}" loading="lazy">
+								<div class="carousel-card-title">{{ category.name }}</div>
+							</a>
+						</div>
+					{% endfor %}
+
+					{# 2. On affiche ensuite les catégories spéciales à la fin #}
+					{% for category in special_categories %}
+						{# --- MODIFICATION ICI --- #}
+						{# On ajoute un id="start-card" sur la carte "Au cinéma" du premier jeu #}
+							<div class="carousel-card" {% if i == 0 and category.id == 'cinema' %} id="start-card" {% endif %} {% if i > 0 %} aria-hidden="true" {% endif %}> {% set path_url = (category.id == 'cinema') ? path('in_theaters') : path('movies_show', {'genreId': category.id}) %}
+							<a href="{{ path_url }}" {% if i > 0 %} tabindex="-1" {% endif %}>
+								{% set category_slug = category.name|lower|replace({' ': '-', 'au cinéma': 'au-cinema', 'séries': 'series-tv'}) %}
+								<img src="{{ asset('build/images/' ~ category_slug ~ '.jpg') | default(asset('build/images/cine-room.jpeg')) }}" alt="{{ category.name }}" loading="lazy">
+								<div class="carousel-card-title">{{ category.name }}</div>
+							</a>
+						</div>
+					{% endfor %}
+				{% endfor %}
+			</div>
+		</div>
+	{% else %}
+		<p class="text-center">Aucune catégorie à afficher pour le moment.</p>
+	{% endif %}
+	<style>
+		body {
+			background-color: $primary-background-color;
+			background-image: url("{{ asset('build/images/SalledeCinéma2.png') }}");
+			background-size: cover;
+			background-position: center;
+			background-repeat: no-repeat;
+			overflow-x: hidden;
+			color: $primary-text-color;
+			font-family: $font-body;
+			line-height: 1.6;
+			min-height: 100vh;
+			display: flex;
+			flex-direction: column;
+			position: relative;
+
+			@media(min-width: $breakpoint-tablet) {
+				background-attachment: fixed;
+			}
+		}
+	</style>
+{% endblock %}

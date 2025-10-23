@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bienvenue sur CinéQuest
+{% endblock %}
+
+{# On retire la barre de navigation sur cette page spécifique #}
+{% block navbar %}{% endblock %}
+
+{% block body %}
+	{# Bandes cinématographiques #}
+	<div class="letterbox-top"></div>
+	<div class="letterbox-bottom"></div>
+
+	<div class="hero-section" style="background-image: url('{{ asset('build/images/admission.jpg') }}');">
+<h1 class="hero-title display-1">
+<img src="{{ asset('build/icons/icone-cinequest.png') }}" alt="CinéQuest" class="icon-logo">
+
+			<br><span class="hero-title-text">CinéQuest</span>
+		</h1>
+		<h2 class="hero-subtitle">Vous ne savez pas quoi regarder ?</h2>
+		<p class="hero-text">Partez en quête des meilleurs films et séries !
+	</br>
+	Ici vous trouverez les listes des meilleurs films par genre et les séries grâce à l'API de
+	<span class="tmdb">TMDB</span>.
+</p>
+<a href="{{ path('home') }}" class="btn btn-dark btn-lg btn-go">Commencer</a></div>
+{% endblock %}
+{# On retire le pied de page sur cette page spécifique #}
+{% block footer %}{% endblock %}

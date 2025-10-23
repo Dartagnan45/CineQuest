@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+	<h1>{{ quiz.title }}</h1>
+	<form method="POST" action="{{ path('quiz_submit', {id: quiz.id}) }}">
+		{% for question in questions %}
+			<div class="question-block">
+				<h3>Question
+					{{ loop.index }}
+					:
+					{{ question.text }}</h3>
+				{% for choice in question.choices %}
+					<label>
+						<input type="radio" name="question_{{ question.id }}" value="{{ choice }}">
+						{{ choice }}
+					</label><br>
+				{% endfor %}
+			</div>
+		{% endfor %}
+		<button type="submit">Valider mes réponses 🎯</button>
+	</form>
+{% endblock %}
+

@@ -1,0 +1,231 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ listTitle }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid px-5 my-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-column flex-md-row">
+        <h1 class="main-title">{{ listTitle }}</h1>
+
+        {% if filters is defined and filters is not null %}
+            {% set current_route = app.request.attributes.get('_route') %}
+            {% set form_action = current_route == 'movies_show'
+                ? path(current_route, {'genreId': genreId})
+                : path(current_route)
+            %}
+
+            <form method="get" action="{{ form_action }}" class="d-flex align-items-center gap-2">
+                {% if searchQuery is defined and searchQuery is not empty %}
+                    <input type="hidden" name="q" value="{{ searchQuery }}">
+                {% endif %}
+
+                {% if filters.media_type_options is defined %}
+                    <select name="media_type" class="form-select" aria-label="Filtrer par type" onchange="this.form.submit()">
+                        {% for value, label in filters.media_type_options %}
+                            <option value="{{ value }}" {{ value == (currentMediaType|default('all')) ? 'selected' }}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+
+                <select name="sort" class="form-select" aria-label="Trier par" onchange="this.form.submit()">
+                    {% set currentSortValue = (currentSort|default('popularity')) ~ '.' ~ (currentOrder|default('desc')) %}
+
+                    {% for value, label in filters.sort_options %}
+                        <option value="{{ value }}.desc" {{ (value ~ '.desc') == currentSortValue ? 'selected' }}>
+                            {{ label }} (Décroissant)
+                        </option>
+                        <option value="{{ value }}.asc" {{ (value ~ '.asc') == currentSortValue ? 'selected' }}>
+                            {{ label }} (Croissant)
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="tri btn btn-light">Appliquer</button>
+            </form>
+        {% endif %}
+    </div>
+
+    {% if items is not empty %}
+        <div class="movie-card-list">
+            {% for item in items %}
+                <div class="card">
+                    {% set item_path = item.isSeries ? path('tv_content', {'id': item.id}) : path('movie_content', {'id': item.id}) %}
+
+                    <div class="card-img-top-wrapper">
+                        <a href="{{ item_path }}" class="text-decoration-none">
+                            <img src="{{ item.poster_path ? 'https://image.tmdb.org/t/p/w500' ~ item.poster_path : asset('build/images/cine-room.jpeg') }}"
+                                 class="card-img-top"
+                                 alt="{{ item.isSeries ? item.name : item.title }}"
+                                 loading="lazy">
+                        </a>
+
+                        {# Étoile favorite et signet #}
+                        {% if app.user %}
+                            {% set isFavorite = false %}
+                            {% set inLists = [] %}
+
+                            {% if app.user.movieLists is not empty %}
+                                {% for list in app.user.movieLists %}
+                                    {% for listItem in list.movieListItems %}
+                                        {% if listItem.tmdbId == item.id and listItem.tmdbType == (item.isSeries ? 'tv' : 'movie') %}
+                                            {% set inLists = inLists|merge([list.name]) %}
+                                            {% if list.name == 'Favoris' %}
+                                                {% set isFavorite = true %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            {% endif %}
+
+                            {# Signet en haut à GAUCHE pour indiquer que le film est dans des listes #}
+                            <button class="in-lists-badge {{ inLists is not empty ? 'has-lists' : '' }}"
+                                    data-controller="bookmark"
+                                    data-bookmark-tmdb-id-value="{{ item.id }}"
+                                    data-bookmark-tmdb-type-value="{{ item.isSeries ? 'tv' : 'movie' }}"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="right"
+                                    data-bs-html="true"
+                                    title="{{ inLists is not empty ? '<strong>Dans vos listes :</strong><br>' ~ inLists|join('<br>') : 'Pas encore dans vos listes' }}"
+                                    type="button"
+                                    disabled>
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+
+                            {# Étoile en haut à DROITE pour les favoris #}
+                            <button
+                                class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}"
+                                data-tmdb-id="{{ item.id }}"
+                                data-tmdb-type="{{ item.isSeries ? 'tv' : 'movie' }}"
+                                data-controller="favorite"
+                                data-action="click->favorite#toggle"
+                                aria-label="Ajouter aux favoris"
+                                title="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}"
+                                type="button">
+                                <i class="fas fa-star"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {% if app.user %}
+                        <div class="dropdown add-to-list-container"
+                             data-controller="add-to-list"
+                             data-add-to-list-tmdb-id-value="{{ item.id }}"
+                             data-add-to-list-tmdb-type-value="{{ item.isSeries ? 'tv' : 'movie' }}">
+                            <button class="btn add-to-list-button" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                {% if app.user.movieLists is not empty %}
+                                    {% for list in app.user.movieLists %}
+                                        <li>
+                                            <a class="dropdown-item"
+                                               href="{{ path('app_movie_list_add_item', {'id': list.id, 'tmdbId': item.id, 'tmdbType': item.isSeries ? 'tv' : 'movie'}) }}"
+                                               data-action="click->add-to-list#add">
+                                                <i class="fas fa-list me-2"></i>{{ list.name }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li>
+                                        <span class="dropdown-item disabled">
+                                            <i class="fas fa-info-circle me-2"></i>Créez d'abord une liste
+                                        </span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    <div class="card-body">
+                        {% if item.vote_average > 0 %}
+                            <div class="movie-rating">
+                                {{ item.vote_average|round(1, 'floor') }}
+                            </div>
+                        {% endif %}
+
+                        <p class="card-text text-muted small">
+                            Sortie : {{ item.year != 'N/A' ? item.year : 'Date inconnue' }}
+                        </p>
+                        <h5 class="card-title">{{ item.isSeries ? item.name : item.title }}</h5>
+                        <p class="card-text">
+                            {{ item.overview|slice(0, 120) ~ (item.overview|length > 120 ? '...' : '') }}
+                        </p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {# Pagination #}
+        {% if totalPages > 1 %}
+            <nav aria-label="Navigation des pages" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    {# Bouton "Précédent" #}
+                    {% if currentPage > 1 %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{{ path(app.request.attributes.get('_route'),
+                                            app.request.query.all|merge({'page': currentPage - 1, 'genreId': genreId is defined ? genreId : null})) }}"
+                               aria-label="Précédent">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    {# Première page #}
+                    {% if currentPage > 3 %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{{ path(app.request.attributes.get('_route'),
+                                            app.request.query.all|merge({'page': 1, 'genreId': genreId is defined ? genreId : null})) }}">1</a>
+                        </li>
+                        {% if currentPage > 4 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endif %}
+
+                    {# Pages autour de la page actuelle #}
+                    {% for page in range(max(1, currentPage - 2), min(totalPages, currentPage + 2)) %}
+                        <li class="page-item {{ page == currentPage ? 'active' : '' }}">
+                            <a class="page-link"
+                               href="{{ path(app.request.attributes.get('_route'),
+                                            app.request.query.all|merge({'page': page, 'genreId': genreId is defined ? genreId : null})) }}">{{ page }}</a>
+                        </li>
+                    {% endfor %}
+
+                    {# Dernière page #}
+                    {% if currentPage < totalPages - 2 %}
+                        {% if currentPage < totalPages - 3 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{{ path(app.request.attributes.get('_route'),
+                                            app.request.query.all|merge({'page': totalPages, 'genreId': genreId is defined ? genreId : null})) }}">{{ totalPages }}</a>
+                        </li>
+                    {% endif %}
+
+                    {# Bouton "Suivant" #}
+                    {% if currentPage < totalPages %}
+                        <li class="page-item">
+                            <a class="page-link"
+                               href="{{ path(app.request.attributes.get('_route'),
+                                            app.request.query.all|merge({'page': currentPage + 1, 'genreId': genreId is defined ? genreId : null})) }}"
+                               aria-label="Suivant">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+
+    {% else %}
+        <div class="alert alert-info text-center" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            Aucun résultat trouvé pour cette recherche.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

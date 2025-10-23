@@ -1,0 +1,31 @@
+# === Symfony core ===
+/var/
+/vendor/
+.env.local
+.env.*.local
+/.env.test
+/.env.dev
+/.env.backup
+/.env.override
+
+# === Frontend / Webpack ===
+/node_modules/
+/public/build/
+/public/assets/cache/
+/npm-debug.log*
+/yarn-error.log*
+
+# === IDE / OS files ===
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# === Logs & caches ===
+/var/log/
+/var/cache/
+/var/sessions/
+
+# === Tests / coverage ===
+/coverage/
+/phpunit.xml.cache

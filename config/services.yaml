@@ -1,0 +1,21 @@
+# config/services.yaml
+parameters:
+    # Cette ligne est nécessaire pour lire la variable d'environnement
+    env(THE_MOVIE_DB_API_KEY): ""
+
+services:
+    # Cette ligne est la configuration par défaut pour tous vos services
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+        # Cette section rend toutes les classes de votre dossier src/ disponibles
+        # comme services, ce qui permet l'injection automatique
+    App\:
+        resource: "../src/"
+        exclude:
+            - "../src/Entity/"
+            - "../src/Kernel.php"
+
+    # La configuration manuelle pour le contrôleur a été supprimée.
+    # L'attribut #[Autowire] dans le constructeur du contrôleur s'en occupe maintenant.

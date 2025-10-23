@@ -1,0 +1,2437 @@
+// =============================================================================
+// IMPORTS
+// =============================================================================
+
+// Variables personnalisées (doit être importé en premier)
+@use "variables" as *;
+
+// Import de Bootstrap complet
+@use "bootstrap" as *;
+
+// Fonts Google
+@import url("https://fonts.googleapis.com/css2?family=Righteous&family=Vollkorn:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap");
+@import "components/favorite-star";
+@import "components/modal-modern";
+@import "components/navbar-dropdown";
+
+// =============================================================================
+// VARIABLES PERSONNALISÉES
+// =============================================================================
+
+// Couleurs principales
+$primary-color: #f47a31 !default;
+$title-color: #37d4cf !default;
+$primary-background-color: #2e3131 !default;
+$primary-text-color: #ffffff !default;
+$secondary-color: #8ef7f2 !default;
+$success-color: #28a745 !default;
+$danger-color: #dc3545 !default;
+$warning-color: #ffc107 !default;
+$info-color: #17a2b8 !default;
+
+// Espacement des cartes
+$card-spacing: 1rem;
+$card-min-width: 250px;
+$card-image-height: 375px;
+$rating-size: 60px;
+
+// Dégradés
+$orange-animated-gradient: linear-gradient(
+    135deg,
+    #f47a31,
+    #f34e0d,
+    #ffa827,
+    #f47a31
+);
+
+$turquoise-animated-gradient: linear-gradient(
+    135deg,
+    #37d4cf,
+    #72b1af,
+    #c0f1ee,
+    #37d4cf
+);
+
+// Typographie
+$font-title: "Righteous", sans-serif !default;
+$font-body: "Vollkorn", serif !default;
+$font-title-h1: "Luckiest Guy", cursive !default;
+
+// Transitions
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$transition-fast: all 0.2s ease-in-out;
+
+// Z-index scale (hiérarchie claire)
+$z-index-dropdown: 1050;
+$z-index-navbar: 1040;
+$z-index-modal: 1055;
+$z-index-tooltip: 1070;
+$z-index-film-bars: 9999;
+
+// Breakpoints personnalisés
+$breakpoint-mobile: 576px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 992px;
+$breakpoint-large: 1200px;
+
+// =============================================================================
+// STYLES GLOBAUX
+// =============================================================================
+
+html {
+    scroll-behavior: smooth;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    overflow-x: hidden;
+    color: $primary-text-color;
+    font-family: $font-body;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+
+    @media (min-width: $breakpoint-tablet) {
+        background-attachment: fixed;
+    }
+}
+
+main {
+    flex: 1 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.footer {
+    flex-shrink: 0;
+    background-color: rgba(30, 30, 30, 0.95) !important;
+    color: rgba(255, 255, 255, 0.7);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    .text-muted {
+        color: $primary-text-color !important;
+    }
+}
+
+.content-wrapper {
+    background-color: rgba($primary-background-color, 0.9);
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 1400px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+
+    @media (max-width: $breakpoint-tablet) {
+        padding: 1rem;
+        margin: 1rem;
+        border-radius: 10px;
+    }
+}
+
+// =============================================================================
+// TYPOGRAPHIE & TITRES ANIMÉS
+// =============================================================================
+
+// Base commune pour tous les titres animés
+%animated-title-base {
+    font-family: $font-title;
+    margin-bottom: 1rem;
+    margin-top: 1.5rem;
+    background-size: 250% auto;
+    animation: gradient-animation 10s ease-in-out infinite;
+}
+
+// Titres avec fond (dégradé sur background)
+%title-with-background {
+    @extend %animated-title-base;
+    color: $primary-text-color;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    padding: 10px 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(150, 150, 150, 0.605);
+    display: inline-block;
+}
+
+// Titres sans fond (dégradé sur texte)
+%title-with-clip {
+    @extend %animated-title-base;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    will-change: background-position;
+}
+
+// Application des styles
+
+// Titres principaux avec dégradé ORANGE (FOND COLORÉ)
+.title-connect,
+.main-title,
+.title-show,
+.director {
+    @extend %title-with-background;
+    background: $orange-animated-gradient;
+    background-size: 300% 300% !important;
+    animation: gradient-animation 15s ease-in-out infinite !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+// Titres Display avec dégradé ORANGE (clip sur texte)
+.hero-title-text,
+.btn-go {
+    // Style de base
+    font-family: $font-title-h1 !important;
+    font-size: clamp(2rem, 6vw, 4rem);
+    display: inline-block;
+
+    // Animation de gradient sur le TEXTE uniquement
+    background: $orange-animated-gradient;
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-animation 15s ease-in-out infinite;
+}
+
+// Titres H3, H4, H5, H6 avec dégradé TURQUOISE (clip sur texte)
+h3,
+h4,
+h5,
+h6 {
+    @extend %title-with-clip;
+    padding-bottom: 20px;
+}
+
+// Ajustements spécifiques
+.main-title {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-family: $font-title-h1;
+    margin-bottom: 1em;
+    margin-top: 1em;
+    vertical-align: text-top !important;
+}
+
+.title-show {
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
+}
+
+.director {
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    flex: 0 0 auto;
+    align-self: flex-start;
+    color: $title-color;
+}
+
+.hero-subtitle {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+    margin-top: -10px;
+    background: $turquoise-animated-gradient;
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-animation 15s ease-in-out infinite;
+}
+
+.tmdb {
+    color: $title-color;
+}
+
+// Liens
+a {
+    color: $title-color;
+    text-decoration: none;
+    transition: $transition-fast;
+
+    &:hover {
+        color: mix(white, $title-color, 20%);
+        text-decoration: none;
+    }
+}
+
+// Paragraphes
+p {
+    font-size: clamp(1rem, 2vw, 1.2rem);
+}
+
+// Texte avec info
+.info {
+    font-size: 1.3rem;
+    color: $title-color;
+    text-decoration: underline $primary-color;
+}
+
+// =============================================================================
+// KEYFRAMES POUR ANIMATIONS
+// =============================================================================
+
+@keyframes glowColors {
+    0% {
+        color: #ff6b6b;
+        text-shadow: 0 0 15px rgba(255, 107, 107, 0.6),
+            0 0 30px rgba(255, 107, 107, 0.3);
+    }
+    25% {
+        color: #f47a31;
+        text-shadow: 0 0 15px rgba(244, 122, 49, 0.6),
+            0 0 30px rgba(244, 122, 49, 0.3);
+    }
+    50% {
+        color: #ffd700;
+        text-shadow: 0 0 15px rgba(255, 215, 0, 0.6),
+            0 0 30px rgba(255, 215, 0, 0.3);
+    }
+    75% {
+        color: #f47a31;
+        text-shadow: 0 0 15px rgba(244, 122, 49, 0.6),
+            0 0 30px rgba(244, 122, 49, 0.3);
+    }
+    100% {
+        color: #ff6b6b;
+        text-shadow: 0 0 15px rgba(255, 107, 107, 0.6),
+            0 0 30px rgba(255, 107, 107, 0.3);
+    }
+}
+
+@keyframes cinemaColors {
+    0% {
+        color: #ff9100;
+    }
+    25% {
+        color: #dc5a26;
+    }
+    50% {
+        color: #f63b89;
+    }
+    75% {
+        color: #b97b10;
+    }
+    100% {
+        color: #ffbb00;
+    }
+}
+
+@keyframes gradient-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+// =============================================================================
+// NAVIGATION
+// =============================================================================
+
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: $z-index-navbar;
+    background: $orange-animated-gradient;
+    background-size: 300% 300%;
+    animation: gradient-animation 15s ease-in-out infinite;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+
+    .navbar-brand {
+        font-family: $font-title-h1;
+        color: $primary-background-color;
+        font-size: 1.5rem;
+        transition: $transition-fast;
+
+        &:hover {
+            color: $title-color !important;
+            transform: scale(1.05);
+        }
+    }
+
+    // Effet de soulignement UNIQUEMENT sur les liens directs (pas les dropdowns)
+    .nav-item:not(.dropdown) .nav-link {
+        color: rgba(255, 255, 255, 0.85);
+        transition: $transition-fast;
+        position: relative;
+
+        &::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background-color: $title-color;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+
+        &:hover {
+            color: $title-color !important;
+
+            &::after {
+                width: 100%;
+                left: 0;
+            }
+        }
+    }
+
+    // Style pour les dropdowns SANS l'effet de soulignement
+    .nav-item.dropdown .nav-link {
+        color: rgba(255, 255, 255, 0.85);
+        transition: $transition-fast;
+
+        &:hover {
+            color: $title-color !important;
+        }
+    }
+
+    .nav-item {
+        margin: 0 10px;
+    }
+}
+
+// Dropdown menu
+.dropdown-menu {
+    z-index: $z-index-dropdown;
+    background-color: rgba(46, 49, 49, 0.98);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(55, 212, 207, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+    min-width: 220px;
+    list-style: none;
+
+    li {
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .dropdown-item {
+        transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1.25rem;
+        color: rgba(255, 255, 255, 0.9);
+
+        .dropdown-icon {
+            width: 24px;
+            margin-right: 0.75rem;
+            text-align: center;
+            transition: transform 0.2s ease-in-out;
+            color: $title-color;
+        }
+
+        &:hover,
+        &:focus {
+            background-color: rgba($title-color, 0.15);
+            color: $title-color;
+
+            .dropdown-icon {
+                transform: scale(1.15) translateX(3px);
+                color: $title-color;
+            }
+        }
+
+        &:active {
+            background-color: rgba($title-color, 0.25);
+        }
+
+        &.active {
+            background-color: rgba($title-color, 0.2);
+            color: $title-color;
+            font-weight: 600;
+        }
+    }
+
+    .dropdown-divider {
+        border-color: rgba(55, 212, 207, 0.2);
+        margin: 0.5rem 0;
+    }
+}
+
+// =============================================================================
+// BOUTONS BOOTSTRAP (Override)
+// =============================================================================
+
+.btn {
+    font-family: $font-title;
+    font-weight: 500;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    transition: $transition-smooth;
+    border: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &:focus,
+    &:focus-visible {
+        outline: 2px solid rgba($title-color, 0.5);
+        outline-offset: 2px;
+        box-shadow: 0 0 0 0.25rem rgba($title-color, 0.25);
+    }
+}
+
+.btn-primary {
+    background-color: $title-color !important;
+    color: $primary-text-color !important;
+    border-color: $title-color !important;
+    box-shadow: 0 4px 12px rgba($title-color, 0.3);
+
+    &:hover {
+        background-color: transparent;
+        border-color: mix(white, $title-color, 15%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba($title-color, 0.4);
+    }
+
+    &:active {
+        background-color: mix(black, $title-color, 10%) !important;
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba($title-color, 0.3);
+    }
+
+    &:disabled,
+    &.disabled {
+        background-color: rgba($title-color, 0.5) !important;
+        border-color: rgba($title-color, 0.5) !important;
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+    }
+}
+
+.btn-secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: $primary-text-color;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-success {
+    background-color: $success-color;
+    color: white;
+
+    &:hover {
+        background-color: mix(white, $success-color, 15%);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-danger {
+    background-color: $danger-color;
+    color: white;
+
+    &:hover {
+        background-color: mix(white, $danger-color, 15%);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-warning {
+    background-color: $warning-color;
+    color: $primary-background-color;
+
+    &:hover {
+        background-color: mix(white, $warning-color, 15%);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-info {
+    background-color: $info-color;
+    color: white;
+
+    &:hover {
+        background-color: mix(white, $info-color, 15%);
+        transform: translateY(-2px);
+    }
+}
+
+.btn-outline-light {
+    background-color: transparent;
+    color: $primary-text-color;
+    border: 1px solid $primary-text-color;
+
+    &:hover {
+        background-color: $title-color;
+        color: $primary-text-color;
+        border-color: $title-color;
+        transform: translateY(-2px);
+    }
+}
+
+.btn-inscription {
+    background-color: $title-color;
+    color: $primary-text-color;
+
+    &:hover {
+        background-color: transparent;
+        color: $primary-text-color;
+        border: 1px solid $primary-text-color;
+        transform: translateY(-2px);
+    }
+}
+
+.btn-lg {
+    padding: 0.8rem 2rem;
+    font-size: 1.1rem;
+}
+
+.btn-sm {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+}
+
+// =============================================================================
+// MODALES (Alerts & Modals Bootstrap)
+// =============================================================================
+
+.modal {
+    .modal-dialog {
+        margin-top: 10vh;
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    .modal-content {
+        background-color: rgba($primary-background-color, 0.98);
+        border: 1px solid rgba($title-color, 0.3);
+        border-radius: 15px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        color: $primary-text-color;
+        overflow: hidden;
+    }
+
+    .modal-header {
+        background: $turquoise-animated-gradient;
+        background-size: 250% auto;
+        animation: gradient-animation 10s ease-in-out infinite;
+        color: $primary-text-color;
+        border-bottom: 1px solid rgba($title-color, 0.3);
+        padding: 1.5rem;
+
+        .modal-title {
+            font-family: $font-title;
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-close {
+            filter: invert(1);
+            opacity: 0.8;
+            transition: $transition-fast;
+
+            &:hover {
+                opacity: 1;
+                transform: rotate(90deg);
+            }
+        }
+    }
+
+    .modal-body {
+        padding: 2rem;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+
+    .modal-footer {
+        border-top: 1px solid rgba($title-color, 0.3);
+        padding: 1rem 1.5rem;
+        background-color: rgba(0, 0, 0, 0.2);
+
+        .btn {
+            min-width: 100px;
+        }
+    }
+}
+
+// Backdrop de la modale
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.85);
+
+    &.show {
+        opacity: 0.85;
+    }
+}
+
+// Alerts stylisées
+.alert {
+    border-radius: 10px;
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    border: none;
+    padding: 1.25rem 1.5rem;
+    font-family: $font-body;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+    }
+
+    &.alert-success {
+        background-color: rgba($success-color, 0.15);
+        color: mix(white, $success-color, 10%);
+        border-left: 5px solid $success-color;
+
+        &::before {
+            background-color: $success-color;
+        }
+
+        .alert-link {
+            color: mix(white, $success-color, 5%);
+            font-weight: 600;
+        }
+    }
+
+    &.alert-danger {
+        background-color: rgba($danger-color, 0.15);
+        color: mix(white, $danger-color, 10%);
+        border-left: 5px solid $danger-color;
+
+        &::before {
+            background-color: $danger-color;
+        }
+
+        .alert-link {
+            color: mix(white, $danger-color, 5%);
+            font-weight: 600;
+        }
+    }
+
+    &.alert-warning {
+        background-color: rgba($warning-color, 0.15);
+        color: mix(black, $warning-color, 30%);
+        border-left: 5px solid $warning-color;
+
+        &::before {
+            background-color: $warning-color;
+        }
+
+        .alert-link {
+            color: mix(black, $warning-color, 40%);
+            font-weight: 600;
+        }
+    }
+
+    &.alert-info {
+        background-color: rgba($info-color, 0.15);
+        color: mix(white, $info-color, 10%);
+        border-left: 5px solid $info-color;
+
+        &::before {
+            background-color: $info-color;
+        }
+
+        .alert-link {
+            color: mix(white, $info-color, 5%);
+            font-weight: 600;
+        }
+    }
+
+    &.alert-primary {
+        background-color: rgba($title-color, 0.15);
+        color: mix(white, $title-color, 10%);
+        border-left: 5px solid $title-color;
+
+        &::before {
+            background-color: $title-color;
+        }
+
+        .alert-link {
+            color: mix(white, $title-color, 5%);
+            font-weight: 600;
+        }
+    }
+
+    .alert-heading {
+        font-family: $font-title;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .btn-close {
+        filter: invert(1);
+        opacity: 0.6;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+}
+
+// Toast notifications
+.toast {
+    background-color: rgba($primary-background-color, 0.98);
+    border: 1px solid rgba($title-color, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+
+    .toast-header {
+        background-color: rgba($title-color, 0.2);
+        color: $primary-text-color;
+        border-bottom: 1px solid rgba($title-color, 0.3);
+
+        .btn-close {
+            filter: invert(1);
+        }
+    }
+
+    .toast-body {
+        color: $primary-text-color;
+    }
+}
+
+// =============================================================================
+// PAGE D'ACCUEIL - HERO SECTION
+// =============================================================================
+
+.hero-section {
+    position: relative;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #fff;
+    overflow: hidden;
+
+    > * {
+        position: relative;
+        z-index: 2;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    // Arrière-plan flou
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+        background: url("../images/admission.jpg") center/cover no-repeat;
+        filter: blur(10px);
+        transform: scale(1.1);
+    }
+
+    // Overlay sombre
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+    }
+
+    // CORRECTION : Logo pop-corn non affecté par les styles de titre
+    .icon-logo {
+        height: 100px;
+        width: auto;
+    }
+}
+
+.letterbox-top,
+.letterbox-bottom {
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: 80px; // Ajuste selon tes préférences
+    background-color: #000;
+    z-index: 9999; // Au-dessus de tout
+    pointer-events: none; // Pour ne pas bloquer les clics
+}
+
+.letterbox-top {
+    top: 0;
+}
+
+.letterbox-bottom {
+    bottom: 0;
+}
+
+.btn-go {
+    font-size: 1.8rem;
+    font-family: $font-title;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    transition: $transition-smooth;
+    box-shadow: 0 4px 15px rgba($title-color, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    &:hover {
+        background-color: mix(white, $title-color, 15%);
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 6px 20px rgba($title-color, 0.6);
+    }
+
+    &:active {
+        transform: translateY(-1px) scale(1.02);
+    }
+}
+
+.hero-text {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+}
+
+// =============================================================================
+// CARROUSEL INFINI
+// =============================================================================
+
+.endless-carousel-container {
+    overflow: hidden;
+    padding: 30px 0;
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.888);
+    border-radius: 10px;
+    margin-top: -10px;
+
+    // Dégradés latéraux pour effet de fondu
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100px;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    &::before {
+        left: 0;
+        background: linear-gradient(
+            to right,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0) 100%
+        );
+    }
+
+    &::after {
+        right: 0;
+        background: linear-gradient(
+            to left,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 0) 100%
+        );
+    }
+}
+
+.endless-carousel-track {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+// Boutons de navigation du carrousel
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    background-color: rgba($primary-color, 0.8);
+    color: $primary-text-color;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: $transition-smooth;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    will-change: transform, background-color;
+
+    &:hover {
+        background-color: rgba($primary-color, 1);
+        transform: translateY(-50%) scale(1.1);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    &:active {
+        transform: translateY(-50%) scale(0.95);
+    }
+
+    &:focus-visible {
+        outline: 2px solid $title-color;
+        outline-offset: 2px;
+    }
+
+    &.carousel-prev {
+        left: 20px;
+
+        &::before {
+            content: "‹";
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    }
+
+    &.carousel-next {
+        right: 20px;
+
+        &::before {
+            content: "›";
+            font-size: 2rem;
+            font-weight: bold;
+        }
+    }
+}
+
+// Cartes du carrousel
+.carousel-card {
+    flex: 0 0 280px;
+    margin: 0 20px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.35);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: scale(0.9);
+    will-change: transform;
+
+    &.is-active {
+        transform: scale(1.1);
+        box-shadow: 0 0 40px rgba(255, 255, 255, 0.6);
+        z-index: 1;
+    }
+
+    a {
+        display: block;
+        text-decoration: none;
+    }
+
+    img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    &:hover img {
+        transform: scale(1.05);
+    }
+}
+
+.carousel-card-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.9) 0%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    color: white;
+    padding: 20px 10px 10px;
+    text-align: center;
+    font-family: $font-title;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
+
+// =============================================================================
+// PAGE DE LISTE DE FILMS (STYLES GÉNÉRIQUES)
+// =============================================================================
+
+.movie-card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax($card-min-width, 1fr));
+    gap: $card-spacing;
+
+    .card {
+        background-color: mix(white, $primary-background-color, 5%);
+        border: 1px solid mix(white, $primary-background-color, 10%);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: $transition-smooth;
+        position: relative;
+
+        &:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+        }
+    }
+
+    .card-img-top-wrapper {
+        position: relative;
+        height: $card-image-height;
+        overflow: hidden;
+    }
+
+    .card-img-top {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+
+        &:hover {
+            transform: scale(1.1);
+        }
+    }
+
+    .movie-title-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.95) 10%,
+            rgba(0, 0, 0, 0) 100%
+        );
+        color: white;
+        padding: 2.5rem 1.25rem 1.25rem;
+
+        h5 {
+            color: white;
+            font-family: $font-title;
+            font-size: 1.4rem;
+            margin: 0;
+        }
+    }
+
+    .card-body {
+        position: relative;
+        padding: 1.5rem;
+        background-color: #ffffff;
+
+        * {
+            color: $primary-background-color;
+        }
+
+        p,
+        .card-text {
+            color: #333 !important;
+        }
+    }
+
+    .movie-rating {
+        position: absolute;
+        top: -30px;
+        right: 20px;
+        background-color: $title-color;
+        color: $primary-background-color;
+        border-radius: 50%;
+        width: $rating-size;
+        height: $rating-size;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-family: $font-title;
+        font-size: 1.3rem;
+        border: 3px solid white;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .card-title {
+        text-decoration: underline 2px $primary-color;
+    }
+}
+
+// =============================================================================
+// STYLES SPÉCIFIQUES POUR LES LISTES PERSONNALISÉES
+// =============================================================================
+
+.user-movie-list {
+    .movie-card-list .card {
+        background-color: rgba(46, 49, 49, 0.95);
+        border: 1px solid rgba(55, 212, 207, 0.2);
+
+        &:hover {
+            border-color: rgba(55, 212, 207, 0.4);
+        }
+
+        .card-body {
+            background-color: transparent;
+
+            * {
+                color: $primary-text-color !important;
+            }
+
+            p,
+            .card-text {
+                color: rgba(255, 255, 255, 0.9) !important;
+            }
+
+            .text-muted {
+                color: rgba(255, 255, 255, 0.7) !important;
+            }
+        }
+    }
+}
+
+// Styles pour le tri
+.tri {
+    background-color: $title-color !important;
+    color: $primary-text-color !important;
+    border-color: $title-color !important;
+
+    &:hover {
+        background-color: mix(white, $title-color, 15%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba($title-color, 0.4);
+    }
+}
+
+// =============================================================================
+// PAGINATION
+// =============================================================================
+
+.pagination {
+    .page-item {
+        &.active {
+            .page-link {
+                background-color: $title-color;
+                border-color: $title-color;
+                color: white;
+                z-index: 2;
+            }
+        }
+
+        .page-link {
+            color: $title-color;
+            background-color: transparent;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+
+            &:hover:not([href="#"]) {
+                background-color: rgba(255, 255, 255, 0.1);
+                color: $primary-color;
+                border-color: $primary-color;
+                transform: translateY(-2px);
+            }
+
+            &[href="#"] {
+                color: rgba(255, 255, 255, 0.3);
+                cursor: not-allowed;
+            }
+        }
+    }
+}
+
+// =============================================================================
+// BARRE DE RECHERCHE ANIMÉE (NAVBAR)
+// =============================================================================
+
+.search-container {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    transition: width 0.4s ease-in-out;
+}
+
+.search-icon {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.25rem;
+    transition: color 0.3s ease, opacity 0.4s ease-in-out;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    &:hover {
+        color: $title-color;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+.search-form {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    width: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: width 0.4s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.search-container.active {
+    width: 250px;
+
+    .search-form {
+        width: 100%;
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .search-icon {
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+#search-form .position-relative {
+    width: 100%;
+}
+
+#search-input {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    color: $primary-background-color;
+
+    &::placeholder {
+        color: rgba(0, 0, 0, 0.5);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba($title-color, 0.3);
+        border-color: $title-color;
+        background-color: white;
+    }
+}
+
+#search-results {
+    position: absolute;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    z-index: $z-index-dropdown;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: rgba(46, 49, 49, 0.98);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    display: none;
+    border: 1px solid rgba($title-color, 0.3);
+
+    &.show {
+        display: block;
+    }
+
+    .dropdown-item {
+        padding: 0.75rem 1rem;
+        color: rgba(255, 255, 255, 0.9);
+        transition: $transition-fast;
+
+        &:hover {
+            background-color: rgba($title-color, 0.15);
+            color: $title-color;
+        }
+
+        &.disabled {
+            color: rgba(255, 255, 255, 0.5);
+            cursor: default;
+        }
+
+        &:first-child {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        &:last-child {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+    }
+}
+
+.logo-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.brand-text {
+    font-size: 1.9rem;
+    vertical-align: text-top;
+    margin-left: -1rem;
+    font-weight: bold;
+}
+
+.navbar-brand {
+    .logo-icon {
+        // Ajustez la hauteur pour qu'elle corresponde à votre titre
+        height: 56px;
+        width: auto; // Garde les proportions
+        vertical-align: middle;
+    }
+}
+
+// =============================================================================
+// PAGE DE CONTENU (FICHE FILM/SÉRIE)
+// =============================================================================
+
+.content-rating {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background-color: $title-color;
+    color: $primary-background-color;
+    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-family: $font-title;
+    font-size: 1.6rem;
+    border: 4px solid white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    animation: pulse 2s infinite;
+}
+
+.real {
+    margin: 1rem;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.ratio iframe {
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+// =============================================================================
+// BOUTON "AJOUTER À LA LISTE" SUR LES AFFICHES
+// =============================================================================
+
+.add-to-list-container {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.add-to-list-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    cursor: pointer;
+
+    &:hover:not(.is-added) {
+        background-color: $title-color;
+        transform: scale(1.1);
+        border-color: $title-color;
+    }
+
+    &.is-added {
+        background-color: #28a745;
+        border-color: #28a745;
+        cursor: default;
+        animation: pulse 0.5s ease;
+    }
+
+    &:focus-visible {
+        outline: 2px solid $title-color;
+        outline-offset: 2px;
+    }
+}
+
+.add-to-list-toast {
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.3s ease, bottom 0.3s ease;
+    pointer-events: none;
+
+    &.show {
+        opacity: 1;
+        bottom: 120%;
+    }
+}
+
+// =============================================================================
+// BOUTON "SUPPRIMER DE LA LISTE" SUR LES AFFICHES
+// =============================================================================
+
+.card-remove-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 10;
+
+    .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: rgba(220, 38, 38, 0.9);
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease;
+
+        &:hover {
+            background-color: rgb(185, 28, 28);
+            transform: scale(1.1);
+        }
+
+        i {
+            font-size: 14px;
+        }
+    }
+}
+
+// S'assure que le parent .card a position: relative
+.movie-card-list .card {
+    position: relative;
+}
+
+// =============================================================================
+// FORMULAIRES DE CONNEXION ET D'INSCRIPTION
+// =============================================================================
+.login-form-container,
+.register-form-container {
+    background-color: rgba(46, 49, 49, 0.95);
+    padding: 2.5rem;
+    border-radius: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+
+    .form-control {
+        background-color: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transition: $transition-fast;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+
+        &:focus {
+            background-color: rgba(255, 255, 255, 0.12);
+            border-color: $title-color;
+            box-shadow: 0 0 0 0.25rem rgba($title-color, 0.25);
+            color: #fff;
+        }
+
+        // CORRECTION : Cache le placeholder quand le champ a du contenu ou est focus
+        &::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+        }
+
+        &:not(:placeholder-shown) ~ label,
+        &:focus ~ label {
+            opacity: 1;
+        }
+    }
+
+    // Le label flottant doit être semi-transparent au départ
+    .form-floating > label {
+        color: rgba(255, 255, 255, 0.7);
+        opacity: 0.7;
+    }
+
+    .form-check-input {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+
+        &:checked {
+            background-color: $title-color;
+            border-color: $title-color;
+        }
+
+        &:focus {
+            border-color: $title-color;
+            box-shadow: 0 0 0 0.25rem rgba($title-color, 0.25);
+        }
+    }
+}
+
+// Force la clarté sur les formulaires
+.login-form-container,
+.register-form-container {
+    * {
+        -webkit-backdrop-filter: none !important;
+        backdrop-filter: none !important;
+        filter: none !important;
+    }
+
+    .form-control {
+        background-color: rgba(255, 255, 255, 0.08);
+
+        &::placeholder {
+            opacity: 1 !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+    }
+}
+
+// =============================================================================
+// PAGE D'ERREUR
+// =============================================================================
+
+.error-page-content {
+    padding-top: 50px;
+    padding-bottom: 50px;
+    background-color: $primary-background-color;
+
+    .display-3 {
+        font-weight: bold;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    .lead {
+        font-size: 1.25rem;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .btn-lg {
+        padding: 0.8rem 1.8rem;
+        font-size: 1.1rem;
+        border-radius: 0.5rem;
+        transition: $transition-smooth;
+        animation: fadeInUp 1s ease-out;
+
+        &:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+    }
+
+    .fa-exclamation-triangle,
+    .fa-redo,
+    .fa-home {
+        margin-right: 8px;
+    }
+
+    .error {
+        color: $title-color;
+        font-size: 1.3rem;
+    }
+}
+
+// =============================================================================
+// UTILITAIRES
+// =============================================================================
+
+.hover-shadow {
+    transition: $transition-smooth;
+
+    &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+}
+
+.transition-all {
+    transition: all 0.2s ease-in-out;
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+*:focus-visible {
+    outline: 2px solid $title-color;
+    outline-offset: 2px;
+}
+
+// =============================================================================
+// ÉTATS DE CHARGEMENT
+// =============================================================================
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.05) 25%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.05) 75%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+}
+
+.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+
+    &::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 40px;
+        height: 40px;
+        margin: -20px 0 0 -20px;
+        border: 3px solid rgba($title-color, 0.3);
+        border-top-color: $title-color;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+}
+
+// =============================================================================
+// RESPONSIVE DESIGN
+// =============================================================================
+
+// Tablettes
+@media (max-width: $breakpoint-tablet) {
+    .movie-card-list {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .card-img-top-wrapper {
+        height: 300px;
+    }
+
+    .carousel-card {
+        flex: 0 0 220px;
+        margin: 0 15px;
+
+        img {
+            height: 180px;
+        }
+    }
+
+    .carousel-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+
+        &.carousel-prev {
+            left: 10px;
+        }
+
+        &.carousel-next {
+            right: 10px;
+        }
+
+        &::before {
+            font-size: 1.5rem !important;
+        }
+    }
+
+    .endless-carousel-container {
+        &::before,
+        &::after {
+            width: 50px;
+        }
+    }
+
+    .search-container.active {
+        width: 200px;
+    }
+
+    .hero-section {
+        min-height: 80vh;
+        padding: 2rem 1rem;
+    }
+
+    .content-wrapper {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+}
+
+// Mobile
+@media (max-width: $breakpoint-mobile) {
+    body {
+        &::before,
+        &::after {
+            height: 40px;
+        }
+    }
+
+    .movie-card-list {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .card-img-top-wrapper {
+        height: 400px;
+    }
+
+    .carousel-card {
+        flex: 0 0 200px;
+        margin: 0 10px;
+
+        img {
+            height: 160px;
+        }
+    }
+
+    .carousel-card-title {
+        font-size: 1rem;
+        padding: 15px 8px 8px;
+    }
+
+    .carousel-nav-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+
+        &.carousel-prev {
+            left: 5px;
+        }
+
+        &.carousel-next {
+            right: 5px;
+        }
+    }
+
+    .navbar {
+        .navbar-brand {
+            font-size: 1.2rem;
+        }
+
+        .nav-item {
+            margin: 5px 0;
+        }
+    }
+
+    .search-container.active {
+        width: 180px;
+    }
+
+    .pagination {
+        font-size: 0.9rem;
+
+        .page-link {
+            padding: 0.4rem 0.6rem;
+        }
+    }
+
+    .content-rating {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+        border-width: 3px;
+    }
+
+    .btn-go {
+        font-size: 1.4rem;
+        padding: 0.6rem 1.5rem;
+    }
+
+    .login-form-container,
+    .register-form-container {
+        padding: 1.5rem;
+    }
+}
+
+// Grandes tablettes et petits desktops
+@media (min-width: $breakpoint-tablet) and (max-width: $breakpoint-desktop) {
+    .movie-card-list {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+}
+
+// Grands écrans
+@media (min-width: $breakpoint-large) {
+    .content-wrapper {
+        max-width: 1600px;
+    }
+
+    .movie-card-list {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .carousel-card {
+        flex: 0 0 320px;
+
+        img {
+            height: 240px;
+        }
+    }
+}
+
+// Gestion du mode paysage mobile
+@media (max-height: 600px) and (orientation: landscape) {
+    .hero-section {
+        min-height: 100vh;
+        padding: 3rem 1rem;
+    }
+
+    .btn-go {
+        font-size: 1.2rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+// =============================================================================
+// PRÉFÉRENCES UTILISATEUR (Reduce Motion)
+// =============================================================================
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+// =============================================================================
+// DARK MODE (Si implémenté plus tard)
+// =============================================================================
+
+@media (prefers-color-scheme: dark) {
+    .card-body {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: $primary-text-color;
+    }
+}
+
+// =============================================================================
+// PRINT STYLES (Pour impression)
+// =============================================================================
+
+@media print {
+    body {
+        background: white;
+        color: black;
+
+        &::before,
+        &::after {
+            display: none;
+        }
+    }
+
+    .navbar,
+    .footer,
+    .carousel-nav-btn,
+    .btn,
+    .search-container {
+        display: none !important;
+    }
+
+    .content-wrapper {
+        box-shadow: none;
+        background: white;
+        color: black;
+    }
+
+    a {
+        color: black;
+        text-decoration: underline;
+    }
+}
+
+// =============================================================================
+// SCROLLBAR PERSONNALISÉE
+// =============================================================================
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+    background: $title-color;
+    border-radius: 5px;
+
+    &:hover {
+        background: mix(white, $title-color, 20%);
+    }
+}
+
+@supports (scrollbar-width: thin) {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: $title-color rgba(0, 0, 0, 0.1);
+    }
+}
+
+// =============================================================================
+// TOOLTIPS ET POPOVERS (Bootstrap override)
+// =============================================================================
+
+.tooltip {
+    .tooltip-inner {
+        background-color: rgba(0, 0, 0, 0.95);
+        color: white;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+    }
+
+    .tooltip-arrow::before {
+        border-top-color: rgba(0, 0, 0, 0.95);
+    }
+}
+
+.popover {
+    background-color: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    .popover-header {
+        background-color: $title-color;
+        color: white;
+        font-weight: bold;
+    }
+}
+
+// ============================================================================
+// SIGNET "DANS VOS LISTES"
+// ============================================================================
+
+.in-lists-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    display: none; // Caché par défaut
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+    z-index: 10;
+    transition: all 0.3s ease;
+
+    i {
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+    &.has-lists {
+        display: flex !important; // Force l'affichage
+        background: rgba(255, 215, 0, 0.95);
+
+        i {
+            color: #000;
+        }
+    }
+
+    &:hover.has-lists {
+        transform: scale(1.1);
+        background: rgba(255, 215, 0, 1);
+    }
+}
+
+// ============================================================================
+// ÉTOILE FAVORITE
+// ============================================================================
+.favorite-star {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+
+    i {
+        color: #888;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+    }
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.9);
+        transform: scale(1.1);
+
+        i {
+            color: #ffd700;
+        }
+    }
+
+    &.is-favorite i {
+        color: #ffd700;
+    }
+
+    &.processing {
+        opacity: 0.5;
+        cursor: wait;
+    }
+}
+
+/* ======================================================
+   💡 Ampoule suspendue — CinéQuest Light Switch
+   ====================================================== */
+/* ==========================================
+   💡 Ampoule suspendue avec cordon à tirer
+   ========================================== */
+.theme-toggle {
+	position: sticky;
+	top: 58px; /* colle à la navbar */
+	left: 50%;
+	transform: translateX(-50%);
+	background: none;
+	border: none;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	z-index: 1000;
+	padding: 0;
+	margin: 0 auto;
+	transition: opacity 0.5s ease, transform 0.5s ease;
+
+	&.hidden {
+		opacity: 0;
+		transform: translateY(-20px);
+		pointer-events: none;
+	}
+}
+
+/* Corps principal de la lampe */
+.lamp {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	flex-direction: row;
+	gap: 8px; /* espace entre ampoule et corde */
+}
+
+/* Ampoule */
+.lamp-bulb {
+	position: relative;
+	width: 70px;
+	height: 90px;
+	background: #ffcc33;
+	border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+	box-shadow: 0 5px 25px rgba(255, 220, 100, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	transition: all 0.4s ease;
+}
+
+/* Culot métallique */
+.lamp-bulb::before {
+	content: "";
+	position: absolute;
+	top: -15px;
+	width: 50px;
+	height: 25px;
+	background: linear-gradient(180deg, #bbb, #888, #555);
+	border-radius: 5px;
+}
+
+/* Filament interne */
+.lamp-filament {
+	width: 22px;
+	height: 26px;
+	border: 2px solid #4a3300;
+	border-top: none;
+	border-radius: 0 0 12px 12px;
+	z-index: 1;
+}
+
+/* Halo lumineux */
+.lamp-light {
+	position: absolute;
+	top: 70px;
+	width: 120px;
+	height: 90px;
+	background: radial-gradient(ellipse at center, rgba(255, 230, 120, 0.4), transparent 70%);
+	filter: blur(10px);
+	opacity: 1;
+	transition: opacity 0.5s ease;
+}
+
+/* --- Mode sombre : ampoule éteinte --- */
+body.dark-mode .lamp-bulb {
+	background: #979797;
+	box-shadow: none;
+}
+
+body.dark-mode .lamp-filament {
+	border-color: #222;
+}
+
+body.dark-mode .lamp-light {
+	opacity: 0;
+}
+
+/* ======================================
+   🧵 Cordon à tirer (interrupteur vintage)
+   ====================================== */
+.lamp-cord {
+	width: 3px;
+	height: 100px;
+	background: #666;
+    margin-top: -2px;
+	border-radius: 2px;
+	position: relative;
+	transition: all 0.2s ease;
+}
+
+/* Animation : quand on clique (corde qui bouge) */
+.theme-toggle:active .lamp-cord {
+	transform: translateY(10px);
+}
+
+/* Animation d’arrivée */
+@keyframes fadeDown {
+	from {
+		opacity: 0;
+		transform: translateY(-20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+.theme-toggle {
+	animation: fadeDown 0.8s ease-out forwards;
+}
+
+
+/* ===============================
+   🎬 Thèmes CinéQuest — version finale
+   =============================== */
+
+/* ----- Fond général ----- */
+body {
+    background-color: #b9b9b9; /* gris clair doux */
+    color: #212529;
+    transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Mode sombre doux */
+body.dark-mode {
+    background-color: #212529; /* gris anthracite doux */
+    color: #f8f9fa;
+}
+
+/* ----- Containers généraux ----- */
+.container {
+    background: transparent !important; /* le fond suit le body */
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* =========================================================
+   OVERRIDES CARDS — inversion propre clair/sombre
+   (laisser ces règles tout en bas du fichier)
+   ========================================================= */
+
+/* --- Mode clair (fond blanc / texte sombre) --- */
+.movie-card-list .card {
+    background-color: #e1e1e1 !important;
+    border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.movie-card-list .card .card-body {
+    background-color: #e1e1e1 !important;
+    color: #212529 !important;
+}
+
+.movie-card-list .card .card-body * {
+    color: #212529 !important;
+}
+
+/* Optionnel: sous-titre gris doux */
+.movie-card-list .card .card-body .text-muted {
+    color: #6c757d !important;
+}
+
+/* --- Mode sombre (fond noir doux / texte clair) --- */
+body.dark-mode .movie-card-list .card {
+    background-color: #1c1c1c !important; /* noir doux, lisible */
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+body.dark-mode .movie-card-list .card .card-body {
+    background-color: #1c1c1c !important;
+    color: #f8f9fa !important;
+}
+
+body.dark-mode .movie-card-list .card .card-body * {
+    color: #f0f2f5 !important;
+}
+
+/* Optionnel: sous-titre en gris clair */
+body.dark-mode .movie-card-list .card .card-body .text-muted {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+/* =========================================================
+    Espace cards
+   ========================================================= */
+
+/* Aération visuelle des cartes */
+.movie-card-list {
+    display: grid;
+    /* ✅ plus de largeur disponible et meilleur remplissage */
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem; /* plus d’espace entre les cards */
+    padding: 1.5rem 2rem; /* espace intérieur du container */
+    justify-items: center; /* centre les cartes sur la ligne */
+    align-items: start;
+}
+
+.movie-card-list .card {
+     width: 100%;
+    max-width: 350px;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 520px;
+}
+
+.movie-card-list .card-text {
+	display: -webkit-box;
+	line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+/* ============================================
+   🎬 Ajustement Titre + Filtres (Disposition horizontale)
+   ============================================ */
+
+.container-fluid > .d-flex {
+    flex-direction: row !important; /* reste côte à côte */
+    align-items: center !important;
+    justify-content: center !important; /* tout centrer */
+    gap: 2rem; /* espace équilibré entre le titre et le formulaire */
+    text-align: center;
+    flex-wrap: wrap; /* pour que ça passe bien sur mobile */
+}
+
+/* Titre */
+.container-fluid > .d-flex .main-title {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 3rem);
+    text-align: center;
+    margin-right: 2em;
+}
+
+/* Formulaire */
+.container-fluid > .d-flex form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 2em;
+    gap: 1rem; /* espace entre les champs */
+}
+
+.container-fluid > .d-flex form .form-select,
+.container-fluid > .d-flex form .btn {
+    min-width: 150px;
+}
+
+/* Pour éviter que le tout soit trop collé sur petits écrans */
+@media (max-width: 768px) {
+    .container-fluid > .d-flex {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+

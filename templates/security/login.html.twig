@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="card bg-dark shadow-lg">
+					<div class="card-body p-5">
+						<h1 class="main-title text-center mb-4"><span>🔐</span> Connexion</h1>
+
+						{% if error %}
+							<div class="alert alert-danger">
+								{{ error.messageKey|trans(error.messageData, 'security') }}
+							</div>
+						{% endif %}
+
+						<form method="post" action="{{ path('app_login') }}">
+							<div class="mb-3">
+								<label for="email" class="form-label">Email</label>
+								<input type="email" class="form-control" id="email" name="_username" value="{{ last_username }}" required autofocus placeholder="Votre adresse email">
+							</div>
+
+							<div class="mb-3">
+								<label for="password" class="form-label">Mot de passe</label>
+								<input type="password" class="form-control" id="password" name="_password" required placeholder="Votre mot de passe">
+							</div>
+
+							<input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+							<div class="d-grid gap-2 mb-3">
+								<button type="submit" class="btn btn-primary btn-lg">
+									<i class="fas fa-sign-in-alt me-2"></i>Se connecter
+								</button>
+							</div>
+
+							<div class="text-center">
+								<p class="text-light mb-0">
+									Pas encore de compte ?
+									<a href="{{ path('app_register') }}" class="text-primary">S'inscrire</a>
+								</p>
+							</div>
+						</form>
+
+						<hr class="my-4">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}
