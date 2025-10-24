@@ -100,9 +100,9 @@ body {
     color: $primary-text-color;
     font-family: $font-body;
     line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    min-height: 100vh; // ✅ ESSENTIEL
+    display: flex; // ✅ ESSENTIEL
+    flex-direction: column; // ✅ ESSENTIEL
     position: relative;
 
     @media (min-width: $breakpoint-tablet) {
@@ -111,16 +111,21 @@ body {
 }
 
 main {
-    flex: 1 0 auto;
+    flex: 1 0 auto; // ✅ CORRECT - prend tout l'espace disponible
     position: relative;
     z-index: 1;
 }
 
 .footer {
-    flex-shrink: 0;
+    flex-shrink: 0; // ✅ CORRECT - ne rétrécit jamais
     background-color: rgba(30, 30, 30, 0.95) !important;
     color: rgba(255, 255, 255, 0.7);
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+
+    // ✅ AJOUTE CES PROPRIÉTÉS si elles ne sont pas déjà là :
+    position: relative; // ✅ IMPORTANT : pas sticky, pas fixed
+    z-index: 1;
+    width: 100%;
 
     .text-muted {
         color: $primary-text-color !important;
@@ -2165,132 +2170,135 @@ p {
    💡 Ampoule suspendue avec cordon à tirer
    ========================================== */
 .theme-toggle {
-	position: sticky;
-	top: 58px; /* colle à la navbar */
-	left: 50%;
-	transform: translateX(-50%);
-	background: none;
-	border: none;
-	cursor: pointer;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	z-index: 1000;
-	padding: 0;
-	margin: 0 auto;
-	transition: opacity 0.5s ease, transform 0.5s ease;
+    position: sticky;
+    top: 58px; /* colle à la navbar */
+    left: 50%;
+    transform: translateX(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+    padding: 0;
+    margin: 0 auto;
+    transition: opacity 0.5s ease, transform 0.5s ease;
 
-	&.hidden {
-		opacity: 0;
-		transform: translateY(-20px);
-		pointer-events: none;
-	}
+    &.hidden {
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+    }
 }
 
 /* Corps principal de la lampe */
 .lamp {
-	position: relative;
-	display: flex;
-	align-items: flex-start;
-	justify-content: center;
-	flex-direction: row;
-	gap: 8px; /* espace entre ampoule et corde */
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-direction: row;
+    gap: 8px; /* espace entre ampoule et corde */
 }
 
 /* Ampoule */
 .lamp-bulb {
-	position: relative;
-	width: 70px;
-	height: 90px;
-	background: #ffcc33;
-	border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
-	box-shadow: 0 5px 25px rgba(255, 220, 100, 0.5);
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	transition: all 0.4s ease;
+    position: relative;
+    width: 70px;
+    height: 90px;
+    background: #ffcc33;
+    border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+    box-shadow: 0 5px 25px rgba(255, 220, 100, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.4s ease;
 }
 
 /* Culot métallique */
 .lamp-bulb::before {
-	content: "";
-	position: absolute;
-	top: -15px;
-	width: 50px;
-	height: 25px;
-	background: linear-gradient(180deg, #bbb, #888, #555);
-	border-radius: 5px;
+    content: "";
+    position: absolute;
+    top: -15px;
+    width: 50px;
+    height: 25px;
+    background: linear-gradient(180deg, #bbb, #888, #555);
+    border-radius: 5px;
 }
 
 /* Filament interne */
 .lamp-filament {
-	width: 22px;
-	height: 26px;
-	border: 2px solid #4a3300;
-	border-top: none;
-	border-radius: 0 0 12px 12px;
-	z-index: 1;
+    width: 22px;
+    height: 26px;
+    border: 2px solid #4a3300;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+    z-index: 1;
 }
 
 /* Halo lumineux */
 .lamp-light {
-	position: absolute;
-	top: 70px;
-	width: 120px;
-	height: 90px;
-	background: radial-gradient(ellipse at center, rgba(255, 230, 120, 0.4), transparent 70%);
-	filter: blur(10px);
-	opacity: 1;
-	transition: opacity 0.5s ease;
+    position: absolute;
+    top: 70px;
+    width: 120px;
+    height: 90px;
+    background: radial-gradient(
+        ellipse at center,
+        rgba(255, 230, 120, 0.4),
+        transparent 70%
+    );
+    filter: blur(10px);
+    opacity: 1;
+    transition: opacity 0.5s ease;
 }
 
 /* --- Mode sombre : ampoule éteinte --- */
 body.dark-mode .lamp-bulb {
-	background: #979797;
-	box-shadow: none;
+    background: #979797;
+    box-shadow: none;
 }
 
 body.dark-mode .lamp-filament {
-	border-color: #222;
+    border-color: #222;
 }
 
 body.dark-mode .lamp-light {
-	opacity: 0;
+    opacity: 0;
 }
 
 /* ======================================
    🧵 Cordon à tirer (interrupteur vintage)
    ====================================== */
 .lamp-cord {
-	width: 3px;
-	height: 100px;
-	background: #666;
-    margin-top: -2px;
-	border-radius: 2px;
-	position: relative;
-	transition: all 0.2s ease;
+    width: 3px;
+    height: 110px;
+    background: #666;
+    margin-top: -10px;
+    border-radius: 2px;
+    position: relative;
+    transition: all 0.2s ease;
 }
 
 /* Animation : quand on clique (corde qui bouge) */
 .theme-toggle:active .lamp-cord {
-	transform: translateY(10px);
+    transform: translateY(10px);
 }
 
 /* Animation d’arrivée */
 @keyframes fadeDown {
-	from {
-		opacity: 0;
-		transform: translateY(-20px);
-	}
-	to {
-		opacity: 1;
-		transform: translateY(0);
-	}
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 .theme-toggle {
-	animation: fadeDown 0.8s ease-out forwards;
+    animation: fadeDown 0.8s ease-out forwards;
 }
-
 
 /* ===============================
    🎬 Thèmes CinéQuest — version finale
@@ -2377,19 +2385,19 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
 }
 
 .movie-card-list .card {
-     width: 100%;
+    width: 100%;
     max-width: 350px;
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	min-height: 520px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 520px;
 }
 
 .movie-card-list .card-text {
-	display: -webkit-box;
-	line-clamp: 3;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
+    display: -webkit-box;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 
 /* ============================================
@@ -2435,3 +2443,799 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
     }
 }
 
+/* === FANART PLEIN ÉCRAN ET FOOTER FIXE === */
+
+/* fanart visible sur tout l’écran */
+.wtw-fanart-wrapper {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+}
+
+.wtw-fanart-wrapper::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background-image: var(--fanart);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 1;
+    z-index: -2;
+}
+
+/* léger dégradé de lisibilité, mais on voit le fanart complet */
+.wtw-fanart-wrapper::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.15) 0%,
+        rgba(0, 0, 0, 0.4) 80%,
+        rgba(0, 0, 0, 0.8) 100%
+    );
+    z-index: -1;
+}
+
+.body-content {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    background: rgba(0, 0, 0, 0.4); /* lisibilité sans cacher le fanart */
+    color: #fff;
+    border-radius: 1rem;
+    padding: 2rem;
+    margin: 2rem auto;
+    width: 90%;
+    max-width: 1200px;
+}
+
+/* QUIZ */
+
+.quiz-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.quiz-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.filter-btn {
+    transition: all 0.3s ease;
+}
+
+.filter-btn.active {
+    background-color: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+}
+
+.quiz-play-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.quiz-play-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.quiz-card-wrapper {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.quiz-card-wrapper.hidden {
+    opacity: 0;
+    transform: scale(0.8);
+    display: none;
+}
+
+.theme-icon {
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+// Styles pour les notes et les plateformes de streaming
+
+// =============================================================================
+// STYLES POUR LE FLIP DU POSTER (Recto/Verso)
+// =============================================================================
+
+.poster-flip-container {
+    perspective: 1000px;
+    position: relative;
+    width: 100%;
+}
+
+.poster-flip-inner {
+    position: relative;
+    width: 100%;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-style: preserve-3d;
+
+    &.flipped {
+        transform: rotateY(180deg);
+    }
+}
+
+.poster-flip-front,
+.poster-flip-back {
+    width: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.poster-flip-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: rotateY(180deg);
+}
+
+// Bouton de flip
+.poster-flip-button {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.9);
+        border-color: rgba(255, 255, 255, 0.8);
+        transform: scale(1.1) rotate(180deg);
+    }
+
+    &:active {
+        transform: scale(0.95);
+    }
+}
+
+// =============================================================================
+// LIGHTBOX POUR AGRANDIR L'IMAGE
+// =============================================================================
+
+.poster-lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90vh;
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+    border-radius: 8px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.8);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 40px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10000;
+
+    &:hover,
+    &:focus {
+        color: #f47a31;
+        transform: rotate(90deg) scale(1.2);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+// =============================================================================
+// STYLES POUR LE RÉALISATEUR AVEC PHOTO
+// =============================================================================
+
+.director-photo {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.director-photo-placeholder {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.director-hover {
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.05);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateX(5px);
+
+        .director-photo {
+            border-color: #37d4cf;
+            transform: scale(1.05);
+        }
+    }
+}
+
+.director-card {
+    display: block;
+
+    &:hover .director-photo {
+        box-shadow: 0 0 20px rgba(55, 212, 207, 0.6);
+    }
+}
+
+// =============================================================================
+// STYLES POUR LES ACTEURS CLIQUABLES
+// =============================================================================
+
+.actor-hover {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+
+    &:hover {
+        transform: translateY(-10px) scale(1.05);
+        box-shadow: 0 10px 30px rgba(55, 212, 207, 0.5);
+        border: 3px solid #37d4cf;
+    }
+}
+
+.actor-name {
+    transition: color 0.3s ease;
+}
+
+a:hover .actor-name {
+    color: #37d4cf !important;
+}
+
+// =============================================================================
+// STYLES POUR LES NOTES (Version 2)
+// =============================================================================
+
+.ratings-section {
+    h5 {
+        font-size: 1.1rem;
+        color: #fff;
+        margin-bottom: 1rem;
+
+        i {
+            font-size: 1.2rem;
+        }
+    }
+}
+
+.ratings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.rating-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+    transition: all 0.3s ease;
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateX(5px);
+    }
+}
+
+.rating-logo-wrapper {
+    flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 0.375rem;
+
+    &.imdb-wrapper {
+        background: #f5c518;
+    }
+}
+
+.rating-logo.tmdb-logo {
+    width: 40px;
+    height: auto;
+    filter: brightness(0) invert(1);
+}
+
+.imdb-icon {
+    font-size: 2.5rem;
+    color: #000;
+}
+
+.rating-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.rating-score {
+    .score-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    &.tmdb-score .score-number {
+        color: #01b4e4;
+    }
+
+    &.imdb-score .score-number {
+        color: #f5c518;
+    }
+}
+
+.rating-votes {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 400;
+}
+
+// =============================================================================
+// STYLES POUR LES PLATEFORMES DE STREAMING (avec liens)
+// =============================================================================
+
+.watch-provider-item {
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: inline-block;
+
+    img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    &:hover {
+        transform: translateY(-5px) scale(1.1);
+
+        img {
+            border-color: #37d4cf;
+            box-shadow: 0 8px 20px rgba(55, 212, 207, 0.6);
+        }
+    }
+
+    &:active {
+        transform: translateY(-3px) scale(1.05);
+    }
+}
+
+// Titres des catégories
+.watch-provider-item + p {
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.7rem;
+}
+
+.gap-2 {
+    gap: 0.5rem !important;
+}
+
+.fas.fa-play-circle,
+.fas.fa-shopping-cart,
+.fas.fa-dollar-sign {
+    color: #01b4e4;
+}
+
+.fas.fa-tv {
+    color: #01b4e4;
+}
+
+// =============================================================================
+// RESPONSIVE
+// =============================================================================
+
+@media (max-width: 768px) {
+    // Flip button plus petit
+    .poster-flip-button {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+        bottom: 10px;
+        right: 10px;
+    }
+
+    // Lightbox close button
+    .lightbox-close {
+        top: 10px;
+        right: 20px;
+        font-size: 35px;
+    }
+
+    // Photo réalisateur plus petite
+    .director-photo,
+    .director-photo-placeholder {
+        width: 60px;
+        height: 60px;
+    }
+
+    // Notes plus compactes
+    .rating-item {
+        padding: 0.5rem;
+        gap: 0.75rem;
+    }
+
+    .rating-logo-wrapper {
+        width: 40px;
+        height: 40px;
+    }
+
+    .rating-logo.tmdb-logo {
+        width: 30px;
+    }
+
+    .imdb-icon {
+        font-size: 2rem;
+    }
+
+    .rating-score .score-number {
+        font-size: 1.25rem;
+    }
+
+    .rating-votes {
+        font-size: 0.65rem;
+    }
+
+    // Plateformes plus petites
+    .watch-provider-item img {
+        width: 45px !important;
+        height: 45px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    // Lightbox
+    .lightbox-content {
+        max-width: 95%;
+        max-height: 85vh;
+    }
+
+    .lightbox-close {
+        top: 5px;
+        right: 10px;
+        font-size: 30px;
+    }
+
+    // Notes encore plus compactes
+    .ratings-container {
+        gap: 0.75rem;
+    }
+
+    .rating-logo-wrapper {
+        width: 35px;
+        height: 35px;
+    }
+
+    .rating-logo.tmdb-logo {
+        width: 25px;
+    }
+
+    .imdb-icon {
+        font-size: 1.75rem;
+    }
+
+    .rating-score .score-number {
+        font-size: 1.1rem;
+    }
+
+    // Plateformes plus petites
+    .watch-provider-item img {
+        width: 40px !important;
+        height: 40px !important;
+    }
+
+    // Photo réalisateur encore plus petite
+    .director-photo,
+    .director-photo-placeholder {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+// =============================================================================
+// DARK MODE / LIGHT MODE
+// =============================================================================
+
+body.dark-mode {
+    .rating-item {
+        background: rgba(255, 255, 255, 0.08);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+    }
+
+    .rating-logo-wrapper {
+        background: rgba(255, 255, 255, 0.12);
+    }
+
+    .watch-provider-item img {
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .poster-flip-button {
+        background: rgba(0, 0, 0, 0.8);
+        border-color: rgba(255, 255, 255, 0.4);
+    }
+}
+
+body:not(.dark-mode) {
+    .rating-item {
+        background: rgba(0, 0, 0, 0.2);
+
+        &:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    }
+
+    .rating-logo-wrapper {
+        background: rgba(0, 0, 0, 0.3);
+    }
+
+    .watch-provider-item img {
+        border-color: rgba(0, 0, 0, 0.2);
+    }
+}
+
+// =============================================================================
+// ANIMATIONS
+// =============================================================================
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.rating-item {
+    animation: fadeInUp 0.5s ease-out;
+
+    &:nth-child(1) {
+        animation-delay: 0.1s;
+    }
+
+    &:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+}
+
+.watch-provider-item {
+    animation: fadeInUp 0.5s ease-out;
+
+    @for $i from 1 through 10 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.05}s;
+        }
+    }
+}
+
+// =============================================================================
+// AMÉLIORATION DE L'ACCESSIBILITÉ
+// =============================================================================
+
+.watch-provider-item:focus-within {
+    outline: 2px solid #37d4cf;
+    outline-offset: 2px;
+}
+
+.rating-item:focus-within {
+    outline: 2px solid #01b4e4;
+    outline-offset: 2px;
+}
+
+.poster-flip-button:focus {
+    outline: 2px solid #37d4cf;
+    outline-offset: 2px;
+}
+
+.rating-votes {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+// =============================================================================
+// PRINT STYLES
+// =============================================================================
+
+@media print {
+    .poster-flip-button,
+    .lightbox-close,
+    .favorite-star,
+    .in-lists-badge {
+        display: none !important;
+    }
+
+    .poster-lightbox {
+        display: none !important;
+    }
+
+    .watch-provider-item {
+        break-inside: avoid;
+    }
+
+    .rating-item {
+        page-break-inside: avoid;
+    }
+}
+
+// =============================================================================
+// STYLES POUR LA PAGE PERSONNE (acteur/réalisateur)
+// =============================================================================
+
+.movie-card-person {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    img {
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    &:hover {
+        transform: translateY(-10px);
+
+        img {
+            box-shadow: 0 10px 25px rgba(55, 212, 207, 0.5);
+            border: 2px solid #37d4cf;
+        }
+
+        p {
+            color: #37d4cf !important;
+        }
+    }
+}
+
+.poster-placeholder {
+    width: 100%;
+    aspect-ratio: 2/3;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+// Card de la personne
+.card {
+    border: none;
+
+    .card-img-top {
+        border-radius: 0.25rem 0.25rem 0 0;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+}
+
+// Photo de profil grande
+.card-img-top {
+    max-height: 600px;
+    object-fit: cover;
+}
+
+// Badges pour les compteurs
+.badge.bg-primary {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.8rem;
+}
+
+// Animations pour les cartes de films
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.movie-card-person {
+    animation: slideInUp 0.6s ease-out;
+
+    @for $i from 1 through 20 {
+        &:nth-child(#{$i}) {
+            animation-delay: #{$i * 0.05}s;
+        }
+    }
+}
+
+// Responsive
+@media (max-width: 768px) {
+    .card-img-top {
+        max-height: 400px;
+    }
+
+    .card-body {
+        padding: 1rem !important;
+    }
+
+    h2.card-title {
+        font-size: 1.5rem;
+    }
+
+    h3.card-title {
+        font-size: 1.3rem;
+    }
+}

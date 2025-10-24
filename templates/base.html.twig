@@ -1,6 +1,6 @@
 {# templates/base.html.twig #}
 <!DOCTYPE html>
-<html>
+<html lang="fr" {{ block('html_attributes') }}>
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,9 +8,8 @@
 			{% block title %}CinéQuest
 			{% endblock %}
 		</title>
-		{# <link rel="icon" href="{{ asset('favicon.png') }}">
-																				<link rel="icon" type="image/x-icon" href="{{ asset('favicon.png') }}"> #}
-		<link rel="icon" class="icon" type="image/png" href="{{ asset('build/icons/petit-icone-cinequest.png') }}">
+
+		<link rel="icon" type="image/png" href="{{ asset('build/icons/petit-icone-cinequest.png') }}">
 
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
 
@@ -18,12 +17,15 @@
 			{{ encore_entry_link_tags('app') }}
 		{% endblock %}
 	</head>
+
 	<body>
 		{% block navbar %}
 			{% include 'partials/navbar.html.twig' %}
+
 			{% set current_route = app.request.attributes.get('_route') %}
 
-			{% if current_route not in ['landing', 'home'] %}
+			{# On n'affiche pas le bouton de thème sur certaines pages #}
+			{% if current_route not in ['landing', 'home', 'movie_content', 'tv_content'] %}
 				<button id="theme-toggle" class="theme-toggle" aria-label="Changer le thème">
 					<div class="lamp">
 						<div class="lamp-bulb">
@@ -39,12 +41,10 @@
 		{% endblock %}
 
 		{# --- BLOC DE NOTIFICATIONS "TOAST" --- #}
-		{# On n'affiche les toasts QUE si on n'est PAS sur les pages d'auth #}
 		{% if app.request.attributes.get('_route') not in ['app_register', 'app_login'] %}
 			<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1055">
 				{% for label, messages in app.flashes %}
 					{% for message in messages %}
-						{# Structure d'un toast Bootstrap #}
 						<div class="toast align-items-center text-white bg-{{ label == 'success' ? 'success' : 'danger' }} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
 							<div class="d-flex">
 								<div class="toast-body">
@@ -64,14 +64,20 @@
 			{% block body %}{% endblock %}
 		</main>
 
-		{% block footer %}
-			{% include 'partials/footer.html.twig' %}
-		{% endblock %}
-
 		{% block javascripts %}
 			{{ encore_entry_script_tags('app') }}
 		{% endblock %}
-		{% if app.request.attributes.get('_route') not in ['landing', 'home'] %}{% endif %}
 
 	</body>
+    
+	{% block footer %}
+		{% include 'partials/footer.html.twig' %}
+	{% endblock %}
+
 </html>
+
+
+{# --- ATTRIBUT HTML PAR DÉFAUT (THÈME ACTUEL) --- #}
+{% block html_attributes %}
+	data-bs-theme="{{ app.session.get('theme', 'dark') }}"
+{% endblock %}

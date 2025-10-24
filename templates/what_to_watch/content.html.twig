@@ -5,202 +5,387 @@
 {% endblock %}
 
 {% block body %}
-	<div class="container my-5">
 
-		<div class="body-content">
-			<h3 class="title-show text-center my-4">
-				{{ isSeries ? item.name : item.title }}
-				({{ (isSeries and item.first_air_date ? item.first_air_date : item.release_date)|date('Y') }})
-			</h3>
+	{# --- FANART EN FOND --- #}
+	{% set fanart = (item.backdrop_path is defined and item.backdrop_path) ? 'https://image.tmdb.org/t/p/original' ~ item.backdrop_path : null %}
 
-			<div class="container-fluid">
-				<div class="row">
-					<div class="col-md-4">
-						<div class="position-relative">
-							{% if item.poster_path %}
-								<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" alt="Poster de {{ isSeries ? item.name : item.title }}">
-							{% else %}
-								<img class="movie-poster img-fluid rounded" src="https://placehold.co/500x750/222/FFF?text=Pas+d'affiche" alt="Pas d'affiche disponible">
-							{% endif %}
+	<div class="wtw-fanart-wrapper" style="{% if fanart %}--fanart:url('{{ fanart }}');{% endif %}">
 
-							{# Note du film/série #}
-							{% if item.vote_average is defined and item.vote_average > 0 %}
-								<div class="content-rating">
-									{{ item.vote_average|round(1, 'floor') }}
+		<div class="container my-5">
+
+			<div class="body-content bg-dark bg-opacity-75 p-4 rounded shadow-lg">
+				<h3 class="title-show text-center my-4 text-white">
+					{{ isSeries ? item.name : item.title }}
+					({{ (isSeries and item.first_air_date ? item.first_air_date : item.release_date)|date('Y') }})
+				</h3>
+
+				<div class="container-fluid">
+					<div class="row">
+						<div
+							class="col-md-4">
+							{# --- POSTER AVEC FLIP RECTO/VERSO --- #}
+							<div class="poster-flip-container position-relative" data-controller="poster-flip">
+								<div
+									class="poster-flip-inner">
+									{# RECTO (Affiche principale) #}
+									<div class="poster-flip-front">
+										{% if item.poster_path %}
+											<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" alt="Poster de {{ isSeries ? item.name : item.title }}" data-action="click->poster-flip#openLightbox" style="cursor: pointer;">
+										{% else %}
+											<img class="movie-poster img-fluid rounded" src="https://placehold.co/500x750/222/FFF?text=Pas+d'affiche" alt="Pas d'affiche disponible">
+										{% endif %}
+
+										{# Note TMDb #}
+										{% if item.vote_average is defined and item.vote_average > 0 %}
+											<div class="content-rating">
+												{{ item.vote_average|round(1, 'floor') }}
+											</div>
+										{% endif %}
+
+										{# Bouton flip vers le verso #}
+										{% if item.backdrop_path %}
+											<button class="poster-flip-button" data-action="click->poster-flip#flip" title="Voir le verso" type="button">
+												<i class="fas fa-sync-alt"></i>
+											</button>
+										{% endif %}
+									</div>
+
+									{# VERSO (Backdrop) #}
+									<div class="poster-flip-back">
+										{% if item.backdrop_path %}
+											<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.backdrop_path }}" alt="Backdrop de {{ isSeries ? item.name : item.title }}" data-action="click->poster-flip#openLightbox" style="cursor: pointer;">
+										{% endif %}
+
+										{# Bouton flip vers le recto #}
+										<button class="poster-flip-button" data-action="click->poster-flip#flip" title="Voir le recto" type="button">
+											<i class="fas fa-undo"></i>
+										</button>
+									</div>
 								</div>
-							{% endif %}
 
-							{# ⭐ ÉTOILE FAVORITE ET SIGNET (Ajout) #}
-							{% if app.user %}
-								{% set isFavorite = false %}
-								{% set inLists = [] %}
+								{# Boutons favoris / signets #}
+								{% if app.user %}
+									{% set isFavorite = false %}
+									{% set inLists = [] %}
 
-								{% if app.user.movieLists is not empty %}
-									{% for list in app.user.movieLists %}
-										{% for listItem in list.movieListItems %}
-											{% if listItem.tmdbId == item.id and listItem.tmdbType == (isSeries ? 'tv' : 'movie') %}
-												{% set inLists = inLists|merge([list.name]) %}
-												{% if list.name == 'Favoris' %}
-													{% set isFavorite = true %}
+									{% if app.user.movieLists is not empty %}
+										{% for list in app.user.movieLists %}
+											{% for listItem in list.movieListItems %}
+												{% if listItem.tmdbId == item.id and listItem.tmdbType == (isSeries ? 'tv' : 'movie') %}
+													{% set inLists = inLists|merge([list.name]) %}
+													{% if list.name == 'Favoris' %}
+														{% set isFavorite = true %}
+													{% endif %}
 												{% endif %}
-											{% endif %}
+											{% endfor %}
 										{% endfor %}
+									{% endif %}
+
+									<button class="in-lists-badge {{ inLists is not empty ? 'has-lists' : '' }}" data-controller="bookmark" data-bookmark-tmdb-id-value="{{ item.id }}" data-bookmark-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true" title="{{ inLists is not empty ? '<strong>Dans vos listes :</strong><br>' ~ inLists|join('<br>') : 'Pas encore dans vos listes' }}" type="button" disabled>
+										<i class="fas fa-bookmark"></i>
+									</button>
+
+									<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-tmdb-id="{{ item.id }}" data-tmdb-type="{{ isSeries ? 'tv' : 'movie' }}" data-controller="favorite" data-action="click->favorite#toggle" aria-label="Ajouter aux favoris" title="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}" type="button">
+										<i class="fas fa-star"></i>
+									</button>
+								{% endif %}
+							</div>
+
+							{# Lightbox pour agrandir l'image #}
+							<div id="posterLightbox" class="poster-lightbox" data-controller="poster-flip" data-action="click->poster-flip#closeLightbox">
+								<span class="lightbox-close" data-action="click->poster-flip#closeLightbox">&times;</span>
+								<img class="lightbox-content" id="lightboxImage" alt="">
+							</div>
+
+							{# --- PAYS / BUDGET --- #}
+							<div class="mt-3 text-white">
+								{% if not isSeries and item.production_countries is not empty %}
+									{% set countryNames = [] %}
+									{% for c in item.production_countries %}
+										{% if c.name is defined %}
+											{% set countryNames = countryNames|merge([c.name]) %}
+										{% endif %}
 									{% endfor %}
+									{% if countryNames is not empty %}
+										<p class="mb-1">
+											<strong>Pays d'origine :</strong>
+											{{ countryNames|join(', ') }}</p>
+									{% endif %}
+								{% elseif isSeries and item.origin_country is not empty %}
+									<p class="mb-1">
+										<strong>Pays d'origine :</strong>
+										{{ item.origin_country|join(', ') }}</p>
 								{% endif %}
 
-								{# Signet en haut à GAUCHE #}
-								<button class="in-lists-badge {{ inLists is not empty ? 'has-lists' : '' }}" data-controller="bookmark" data-bookmark-tmdb-id-value="{{ item.id }}" data-bookmark-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true" title="{{ inLists is not empty ? '<strong>Dans vos listes :</strong><br>' ~ inLists|join('<br>') : 'Pas encore dans vos listes' }}" type="button" disabled>
-									<i class="fas fa-bookmark"></i>
-								</button>
+								{% if not isSeries and item.budget is defined and item.budget > 0 %}
+									<p class="mb-1">
+										<strong>Budget :</strong>
+										{{ item.budget|number_format(0, '.', ' ') }}
+										€</p>
+								{% endif %}
 
-								{# Étoile en haut à DROITE pour les favoris #}
-								<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-tmdb-id="{{ item.id }}" data-tmdb-type="{{ isSeries ? 'tv' : 'movie' }}" data-controller="favorite" data-action="click->favorite#toggle" aria-label="Ajouter aux favoris" title="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}" type="button">
-									<i class="fas fa-star"></i>
-								</button>
-							{% endif %}
-						</div>
+								{# --- NOTES TMDb ET IMDb --- #}
+								<div class="mt-3 ratings-section">
+									<h5 class="mb-3">
+										<strong>
+											<i class="fas fa-star text-warning me-1"></i>
+											Notes
+										</strong>
+									</h5>
 
-						{# --- BLOC PAYS ET BUDGET --- #}
-						<div
-							class="mt-3">
-							{# Pays d'origine #}
-							{% if not isSeries and item.production_countries is not empty %}
-								<p class="mb-1">
-									<strong class="info">Pays d'origine :</strong>
-									{{ item.production_countries|map(c => c.name)|join(', ') }}
-								</p>
-							{% elseif isSeries and item.origin_country is not empty %}
-								<p class="mb-1">
-									<strong class="info">Pays d'origine :</strong>
-									{{ item.origin_country|join(', ') }}
-								</p>
-							{% endif %}
-
-							{# Budget (uniquement pour les films) #}
-							{% if not isSeries and item.budget is defined and item.budget > 0 %}
-								<p class="mb-1">
-									<strong class="info">Budget :</strong>
-									{{ item.budget|number_format(0, '.', ' ') }}
-									€
-								</p>
-							{% endif %}
-						</div>
-
-						{# --- BOUTON AJOUTER À UNE LISTE --- #}
-{# Extrait du template content.html.twig - SECTION DROPDOWN #}
-
-{# --- BOUTON AJOUTER À UNE LISTE --- #}
-	{% if app.user %}
-		<div class="dropdown mt-4" data-controller="add-to-list" data-add-to-list-tmdb-id-value="{{ item.id }}" data-add-to-list-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}"> <button class="btn btn-primary dropdown-toggle w-100 btn-lg" type="button" id="dropdownMenuButton-{{ item.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-			<i class="fas fa-plus"></i>
-			Ajouter à une liste
-		</button>
-
-		<ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton-{{ item.id }}">
-			{% if app.user.movieLists is not empty %}
-				{% for list in app.user.movieLists %}
-					<li>
-						<a class="dropdown-item" href="{{ path('app_movie_list_add_item', {'id': list.id, 'tmdbId': item.id, 'tmdbType': isSeries ? 'tv' : 'movie'}) }}" data-action="click->add-to-list#add">
-							<i class="fas fa-list me-2"></i>
-							{{ list.name }}
-						</a>
-					</li>
-				{% endfor %}
-			{% else %}
-				<li>
-					<span class="dropdown-item disabled">
-						<i class="fas fa-info-circle me-2"></i>Créez d'abord une liste
-					</span>
-				</li>
-			{% endif %}
-		</ul>
-	</div>
-{% endif %}
-
-					</div>
-
-					<div class="col-md-8">
-						<div
-							class="row mb-4">
-
-							{# --- RÉALISATEUR + BANDE-ANNONCE CÔTE À CÔTE --- #}
-							<div class="col-12 mb-4">
-								<div
-									class="row align-items-start">
-
-									{# Colonne réalisateur(s) #}
-									<div class="col-md-6 mb-3">
-										{% set directors = [] %}
-										{% if item.credits.crew is defined %}
-											{% for member in item.credits.crew %}
-												{% if member.job == 'Director' %}
-													{% set directors = directors|merge([member.name]) %}
-												{% endif %}
-											{% endfor %}
-										{% endif %}
-
-										{% if directors is not empty %}
-											<h4 class="director d-inline-block px-2 rounded mb-0">Réalisateur(s) :</h4>
-											<p class="real mt-2">{{ directors|join(', ') }}</p>
-										{% else %}
-											<h4 class="director d-inline-block px-2 rounded mb-0">Réalisateur :</h4>
-											<p class="real mt-2">Inconnu</p>
-										{% endif %}
-									</div>
-
-									{# Colonne bande-annonce #}
-									<div class="col-md-6">
-										{% set trailer = null %}
-										{% if item.videos.results is defined %}
-											{% for video in item.videos.results %}
-												{% if trailer is null and video.type == 'Trailer' and video.site == 'YouTube' %}
-													{% set trailer = video %}
-												{% endif %}
-											{% endfor %}
-										{% endif %}
-
-										{% if trailer %}
-											<h4 class="director d-inline-block px-2 rounded mb-0">Bande-annonce :</h4>
-											<div class="ratio ratio-16x9 mt-2">
-												<iframe src="https://www.youtube.com/embed/{{ trailer.key }}?autoplay=1&mute=1&loop=1&playlist={{ trailer.key }}" title="Bande-annonce" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+									<div
+										class="ratings-container">
+										{# Note TMDb (en pourcentage) #}
+										{% if item.vote_average is defined and item.vote_average > 0 %}
+											{% set tmdbPercent = (item.vote_average * 10)|round(0) %}
+											<div class="rating-item mb-3">
+												<div class="rating-logo-wrapper">
+													<img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDb" class="rating-logo tmdb-logo">
+												</div>
+												<div class="rating-details">
+													<div class="rating-score tmdb-score">
+														<span class="score-number">{{ tmdbPercent }}%</span>
+													</div>
+													{% if item.vote_count is defined and item.vote_count > 0 %}
+														<div class="rating-votes">
+															{{ item.vote_count|number_format(0, '.', ' ') }}
+															votes
+														</div>
+													{% endif %}
+												</div>
 											</div>
-										{% else %}
-											<p class="text-muted mt-2">Pas de bande-annonce disponible.</p>
+										{% endif %}
+
+										{# Note IMDb (sur 10) #}
+										{% if omdb is defined and omdb is not null %}
+											{% set imdbRating = omdb.imdbRating ?? null %}
+											{% if imdbRating and imdbRating != 'N/A' %}
+												<div class="rating-item mb-3">
+													<div class="rating-logo-wrapper imdb-wrapper">
+														<i class="fab fa-imdb imdb-icon"></i>
+													</div>
+													<div class="rating-details">
+														<div class="rating-score imdb-score">
+															<span class="score-number">{{ imdbRating }}/10</span>
+														</div>
+														{% if omdb.imdbVotes is defined and omdb.imdbVotes != 'N/A' %}
+															<div class="rating-votes">
+																{{ omdb.imdbVotes }}
+																votes
+															</div>
+														{% endif %}
+													</div>
+												</div>
+											{% endif %}
 										{% endif %}
 									</div>
-
 								</div>
 							</div>
 
-							{# --- BLOC ACTEURS PRINCIPAUX --- #}
-							<div class="col-12">
-								<h4 class="director d-inline-block px-2 rounded">Acteurs principaux :</h4>
-							</div>
+							{# --- BOUTON AJOUTER À UNE LISTE --- #}
+							{% if app.user %}
+								<div class="dropdown mt-4" data-controller="add-to-list" data-add-to-list-tmdb-id-value="{{ item.id }}" data-add-to-list-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}">
+									<button class="btn btn-primary dropdown-toggle w-100 btn-lg" type="button" id="dropdownMenuButton-{{ item.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+										<i class="fas fa-plus"></i>
+										Ajouter à une liste
+									</button>
 
-							<div class="row">
-								{% for actor in item.credits.cast|slice(0, 4) %}
-									<div class="stars col-6 col-md-3 text-center h-100 d-flex flex-column">
-										{% if actor.profile_path %}
-											<img class="image-stars rounded-circle img-fluid mb-2" src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="Photo de {{ actor.name }}">
+									<ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton-{{ item.id }}">
+										{% if app.user.movieLists is not empty %}
+											{% for list in app.user.movieLists %}
+												<li>
+													<a class="dropdown-item" href="{{ path('app_movie_list_add_item', {'id': list.id, 'tmdbId': item.id, 'tmdbType': isSeries ? 'tv' : 'movie'}) }}" data-action="click->add-to-list#add">
+														<i class="fas fa-list me-2"></i>
+														{{ list.name }}
+													</a>
+												</li>
+											{% endfor %}
 										{% else %}
-											<img class="image-stars rounded-circle img-fluid mb-2" src="https://placehold.co/200x300/222/FFF?text={{ actor.name|url_encode }}" alt="Photo de {{ actor.name }} non disponible">
+											<li>
+												<span class="dropdown-item disabled">
+													<i class="fas fa-info-circle me-2"></i>Créez d'abord une liste</span>
+											</li>
 										{% endif %}
-										<p class="actor-name mt-auto">
-											{{ actor.name }}<br><em>({{ actor.character }})</em>
-										</p>
-									</div>
-								{% endfor %}
-							</div>
+									</ul>
+								</div>
+							{% endif %}
+						</div>
 
-							{# --- BLOC SYNOPSIS --- #}
-							<div class="col-12 mt-4">
-								<h4 class="director d-inline-block px-2 rounded mb-3">Synopsis :</h4>
-								<p class="description">{{ item.overview }}</p>
+						<div class="col-md-8 text-white">
+							<div
+								class="row mb-4">
+
+								{# --- RÉALISATEUR AVEC PHOTO + PLATEFORMES --- #}
+								<div class="col-12 mb-4">
+									<div class="row align-items-start">
+
+										<div
+											class="col-md-6 mb-3">
+											{# Réalisateur avec photo #}
+											{% set director = null %}
+											{% if item.credits.crew is defined %}
+												{% for member in item.credits.crew %}
+													{% if member.job == 'Director' and director is null %}
+														{% set director = member %}
+													{% endif %}
+												{% endfor %}
+											{% endif %}
+
+											<h4 class="director d-inline-block px-2 rounded mb-3">Réalisateur :</h4>
+											{% if director %}
+												<a href="{{ path('person_details', {'id': director.id}) }}" class="director-card text-decoration-none">
+													<div class="d-flex align-items-center mb-3 p-2 rounded director-hover">
+														{% if director.profile_path %}
+															<img src="https://image.tmdb.org/t/p/w185{{ director.profile_path }}" alt="Photo de {{ director.name }}" class="director-photo rounded-circle me-3">
+														{% else %}
+															<div class="director-photo-placeholder rounded-circle me-3 d-flex align-items-center justify-content-center">
+																<i class="fas fa-user fa-2x text-muted"></i>
+															</div>
+														{% endif %}
+														<div>
+															<p class="mb-0 fw-bold text-white">{{ director.name }}</p>
+															<small class="text-muted">Voir la filmographie
+																<i class="fas fa-arrow-right"></i>
+															</small>
+														</div>
+													</div>
+												</a>
+											{% else %}
+												<p class="real mt-2">Inconnu</p>
+											{% endif %}
+
+											{# --- PLATEFORMES DE STREAMING AVEC LIENS --- #}
+											{% if watchProviders is defined %}
+												<div class="mt-4">
+													<h5 class="mb-3">
+														<strong>
+															<i class="fas fa-tv text-primary me-1"></i>
+															Disponible sur
+														</strong>
+													</h5>
+
+													{# Streaming (abonnement) #}
+													{% if watchProviders.flatrate is not empty %}
+														<div class="mb-3">
+															<p class="mb-2 small text-muted fw-bold">
+																<i class="fas fa-play-circle me-1"></i>
+																STREAMING
+															</p>
+															<div class="d-flex flex-wrap gap-2">
+																{% for provider in watchProviders.flatrate %}
+																	<a href="{{ watchProviders.link ?? '#' }}" target="_blank" rel="noopener noreferrer" class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="Regarder sur {{ provider.provider_name }}">
+																		<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
+																	</a>
+																{% endfor %}
+															</div>
+														</div>
+													{% endif %}
+
+													{# Location #}
+													{% if watchProviders.rent is not empty %}
+														<div class="mb-3">
+															<p class="mb-2 small text-muted fw-bold">
+																<i class="fas fa-shopping-cart me-1"></i>
+																LOCATION
+															</p>
+															<div class="d-flex flex-wrap gap-2">
+																{% for provider in watchProviders.rent %}
+																	<a href="{{ watchProviders.link ?? '#' }}" target="_blank" rel="noopener noreferrer" class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="Louer sur {{ provider.provider_name }}">
+																		<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
+																	</a>
+																{% endfor %}
+															</div>
+														</div>
+													{% endif %}
+
+													{# Achat #}
+													{% if watchProviders.buy is not empty %}
+														<div class="mb-3">
+															<p class="mb-2 small text-muted fw-bold">
+																<i class="fas fa-dollar-sign me-1"></i>
+																ACHAT
+															</p>
+															<div class="d-flex flex-wrap gap-2">
+																{% for provider in watchProviders.buy %}
+																	<a href="{{ watchProviders.link ?? '#' }}" target="_blank" rel="noopener noreferrer" class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="Acheter sur {{ provider.provider_name }}">
+																		<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
+																	</a>
+																{% endfor %}
+															</div>
+														</div>
+													{% endif %}
+
+													{# Aucune plateforme #}
+													{% if watchProviders.flatrate is empty and watchProviders.rent is empty and watchProviders.buy is empty %}
+														<p class="text-muted small fst-italic">
+															<i class="fas fa-info-circle me-1"></i>
+															Aucune plateforme disponible en France pour le moment.
+														</p>
+													{% endif %}
+												</div>
+											{% endif %}
+										</div>
+
+										<div
+											class="col-md-6">
+											{# Trailer YouTube avec autoplay et muted #}
+											{% set trailer = null %}
+											{% if item.videos.results is defined %}
+												{% for video in item.videos.results %}
+													{% if trailer is null and video.type == 'Trailer' and video.site == 'YouTube' %}
+														{% set trailer = video %}
+													{% endif %}
+												{% endfor %}
+											{% endif %}
+
+											{% if trailer %}
+												<h4 class="director d-inline-block px-2 rounded mb-0">Bande-annonce :</h4>
+												<div class="ratio ratio-16x9 mt-2">
+													<iframe src="https://www.youtube.com/embed/{{ trailer.key }}?autoplay=1&mute=1&loop=1&playlist={{ trailer.key }}" title="Bande-annonce" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+												</div>
+											{% else %}
+												<p class="text-muted mt-2">Pas de bande-annonce disponible.</p>
+											{% endif %}
+										</div>
+									</div>
+								</div>
+
+								{# --- ACTEURS CLIQUABLES --- #}
+								<div class="col-12">
+									<h4 class="director d-inline-block px-2 rounded">Acteurs principaux :</h4>
+								</div>
+
+								<div class="row">
+									{% for actor in (item.credits.cast is defined ? item.credits.cast|slice(0, 4) : []) %}
+										<div class="stars col-6 col-md-3 text-center d-flex flex-column mb-3">
+											<a href="{{ path('person_details', {'id': actor.id}) }}" class="text-decoration-none">
+												{% if actor.profile_path %}
+													<img class="image-stars rounded-circle img-fluid mb-2 actor-hover" src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="Photo de {{ actor.name }}">
+												{% else %}
+													<img class="image-stars rounded-circle img-fluid mb-2 actor-hover" src="https://placehold.co/200x300/222/FFF?text={{ actor.name|url_encode }}" alt="Photo de {{ actor.name }} non disponible">
+												{% endif %}
+												<p class="actor-name mt-auto text-white">{{ actor.name }}<br><em class="text-muted">({{ actor.character }})</em>
+												</p>
+											</a>
+										</div>
+									{% endfor %}
+								</div>
+
+								{# --- SYNOPSIS --- #}
+								<div class="col-12 mt-4">
+									<h4 class="director d-inline-block px-2 rounded mb-3">Synopsis :</h4>
+									<p class="description">{{ item.overview }}</p>
+								</div>
+
 							</div>
 						</div>
+
 					</div>
 				</div>
+
 			</div>
 		</div>
+
 	</div>
+
 {% endblock %}

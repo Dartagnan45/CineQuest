@@ -211,3 +211,33 @@ document.addEventListener("scroll", () => {
     if (!toggleBtn) return;
     toggleBtn.classList.toggle("hidden", window.scrollY > 100);
 });
+
+
+// =============================================================================
+// ÉVÉNEMENTS QUIZ
+// =============================================================================
+
+// Index Quiz
+document.addEventListener("DOMContentLoaded", function () {
+    const filterButtons = document.querySelectorAll(".filter-btn");
+    const quizCards = document.querySelectorAll(".quiz-card-wrapper");
+
+    filterButtons.forEach((button) => {
+        button.addEventListener("click", function () {
+            // Mise à jour des boutons actifs
+            filterButtons.forEach((btn) => btn.classList.remove("active"));
+            this.classList.add("active");
+
+            const filter = this.dataset.filter;
+
+            // Filtrage des cartes
+            quizCards.forEach((card) => {
+                if (filter === "all" || card.dataset.difficulty === filter) {
+                    card.classList.remove("hidden");
+                } else {
+                    card.classList.add("hidden");
+                }
+            });
+        });
+    });
+});

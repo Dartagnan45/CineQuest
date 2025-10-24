@@ -1,0 +1,231 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}
+	{{ person.name }}
+{% endblock %}
+
+{% block body %}
+
+	<div class="container my-5">
+		<div
+			class="row">
+			{# Photo et infos principales #}
+			<div class="col-md-4 mb-4">
+				<div class="card bg-dark text-white shadow-lg">
+					{% if person.profile_path %}
+						<img src="https://image.tmdb.org/t/p/w500{{ person.profile_path }}" class="card-img-top" alt="Photo de {{ person.name }}">
+					{% else %}
+						<div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 500px;">
+							<i class="fas fa-user fa-10x text-muted"></i>
+						</div>
+					{% endif %}
+
+					<div class="card-body">
+						<h2 class="card-title mb-3">{{ person.name }}</h2>
+
+						{% if person.known_for_department %}
+							<p class="mb-2">
+								<strong>
+									<i class="fas fa-briefcase me-2"></i>Métier :</strong>
+								{% if person.known_for_department == 'Acting' %}
+									Acteur/Actrice
+								{% elseif person.known_for_department == 'Directing' %}
+									Réalisateur/Réalisatrice
+								{% else %}
+									{{ person.known_for_department }}
+								{% endif %}
+							</p>
+						{% endif %}
+
+						{% if person.birthday %}
+							<p class="mb-2">
+								<strong>
+									<i class="fas fa-birthday-cake me-2"></i>Naissance :</strong>
+								{{ person.birthday|date('d/m/Y') }}
+								{% if person.deathday is null %}
+									({{ "now"|date('Y') - person.birthday|date('Y') }}
+									ans)
+								{% endif %}
+							</p>
+						{% endif %}
+
+						{% if person.deathday %}
+							<p class="mb-2">
+								<strong>
+									<i class="fas fa-cross me-2"></i>Décès :</strong>
+								{{ person.deathday|date('d/m/Y') }}
+							</p>
+						{% endif %}
+
+						{% if person.place_of_birth %}
+							<p class="mb-2">
+								<strong>
+									<i class="fas fa-map-marker-alt me-2"></i>Lieu de naissance :</strong>
+								{{ person.place_of_birth }}
+							</p>
+						{% endif %}
+					</div>
+				</div>
+			</div>
+
+			{# Biographie et filmographie #}
+			<div
+				class="col-md-8">
+				{# Biographie #}
+				{% if person.biography %}
+					<div class="card bg-dark text-white mb-4 shadow-lg">
+						<div class="card-body">
+							<h3 class="card-title mb-3">
+								<i class="fas fa-book me-2"></i>Biographie
+							</h3>
+							<p class="card-text" style="white-space: pre-line;">{{ person.biography }}</p>
+						</div>
+					</div>
+				{% endif %}
+
+				{# Films réalisés (si réalisateur) #}
+				{% if directedMovies is not empty %}
+					<div class="card bg-dark text-white mb-4 shadow-lg">
+						<div class="card-body">
+							<h3 class="card-title mb-4">
+								<i class="fas fa-film me-2"></i>Films réalisés
+								<span class="badge bg-primary ms-2">{{ directedMovies|length }}</span>
+							</h3>
+							<div class="row g-3">
+								{% for movie in directedMovies|slice(0, 20) %}
+									<div class="col-6 col-md-4 col-lg-3">
+										<a href="{{ path('movie_content', {'id': movie.id}) }}" class="text-decoration-none">
+											<div class="movie-card-person">
+												{% if movie.poster_path %}
+													<img src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}" class="img-fluid rounded mb-2" alt="Poster de {{ movie.title }}">
+												{% else %}
+													<div class="poster-placeholder rounded mb-2">
+														<i class="fas fa-film fa-3x"></i>
+													</div>
+												{% endif %}
+												<p class="text-white small mb-0 text-center">
+													{{ movie.title }}
+													{% if movie.release_date %}
+														<br><small class="text-muted">({{ movie.release_date|date('Y') }})</small>
+													{% endif %}
+												</p>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+							</div>
+
+							{% if directedMovies|length > 20 %}
+								<p class="text-muted mt-3 text-center">
+									<i class="fas fa-info-circle me-1"></i>
+									Affichage des 20 films les plus récents sur
+									{{ directedMovies|length }}
+								</p>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+
+				{# Films en tant qu'acteur #}
+				{% if movieCredits is not empty %}
+					<div class="card bg-dark text-white mb-4 shadow-lg">
+						<div class="card-body">
+							<h3 class="card-title mb-4">
+								<i class="fas fa-star me-2"></i>Filmographie (acteur)
+								<span class="badge bg-primary ms-2">{{ movieCredits|length }}</span>
+							</h3>
+							<div class="row g-3">
+								{% for movie in movieCredits|slice(0, 20) %}
+									<div class="col-6 col-md-4 col-lg-3">
+										<a href="{{ path('movie_content', {'id': movie.id}) }}" class="text-decoration-none">
+											<div class="movie-card-person">
+												{% if movie.poster_path %}
+													<img src="https://image.tmdb.org/t/p/w300{{ movie.poster_path }}" class="img-fluid rounded mb-2" alt="Poster de {{ movie.title }}">
+												{% else %}
+													<div class="poster-placeholder rounded mb-2">
+														<i class="fas fa-film fa-3x"></i>
+													</div>
+												{% endif %}
+												<p class="text-white small mb-0 text-center">
+													{{ movie.title }}
+													{% if movie.release_date %}
+														<br><small class="text-muted">({{ movie.release_date|date('Y') }})</small>
+													{% endif %}
+													{% if movie.character %}
+														<br><em class="text-info" style="font-size: 0.8rem;">{{ movie.character }}</em>
+													{% endif %}
+												</p>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+							</div>
+
+							{% if movieCredits|length > 20 %}
+								<p class="text-muted mt-3 text-center">
+									<i class="fas fa-info-circle me-1"></i>
+									Affichage des 20 films les plus récents sur
+									{{ movieCredits|length }}
+								</p>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+
+				{# Séries TV #}
+				{% if tvCredits is not empty %}
+					<div class="card bg-dark text-white shadow-lg">
+						<div class="card-body">
+							<h3 class="card-title mb-4">
+								<i class="fas fa-tv me-2"></i>Séries TV
+								<span class="badge bg-primary ms-2">{{ tvCredits|length }}</span>
+							</h3>
+							<div class="row g-3">
+								{% for show in tvCredits|slice(0, 20) %}
+									<div class="col-6 col-md-4 col-lg-3">
+										<a href="{{ path('tv_content', {'id': show.id}) }}" class="text-decoration-none">
+											<div class="movie-card-person">
+												{% if show.poster_path %}
+													<img src="https://image.tmdb.org/t/p/w300{{ show.poster_path }}" class="img-fluid rounded mb-2" alt="Poster de {{ show.name }}">
+												{% else %}
+													<div class="poster-placeholder rounded mb-2">
+														<i class="fas fa-tv fa-3x"></i>
+													</div>
+												{% endif %}
+												<p class="text-white small mb-0 text-center">
+													{{ show.name }}
+													{% if show.first_air_date %}
+														<br><small class="text-muted">({{ show.first_air_date|date('Y') }})</small>
+													{% endif %}
+													{% if show.character %}
+														<br><em class="text-info" style="font-size: 0.8rem;">{{ show.character }}</em>
+													{% endif %}
+												</p>
+											</div>
+										</a>
+									</div>
+								{% endfor %}
+							</div>
+
+							{% if tvCredits|length > 20 %}
+								<p class="text-muted mt-3 text-center">
+									<i class="fas fa-info-circle me-1"></i>
+									Affichage des 20 séries les plus récentes sur
+									{{ tvCredits|length }}
+								</p>
+							{% endif %}
+						</div>
+					</div>
+				{% endif %}
+			</div>
+		</div>
+
+		{# Bouton retour #}
+		<div class="text-center mt-4">
+			<a href="javascript:history.back()" class="btn btn-primary btn-lg">
+				<i class="fas fa-arrow-left me-2"></i>Retour
+			</a>
+		</div>
+	</div>
+
+{% endblock %}

@@ -46,8 +46,11 @@ class WhatToWatchController extends AbstractController
         #[Autowire('%env(THE_MOVIE_DB_API_KEY)%')]
         private string $apiKey,
         private LoggerInterface $logger,
-        private CacheInterface $cache
+        private CacheInterface $cache,
+        #[Autowire('%env(OMDB_API_KEY)%')]
+        private ?string $omdbApiKey = null
     ) {}
+
 
     protected function render(string $view, array $parameters = [], ?Response $response = null): Response
     {
@@ -202,18 +205,6 @@ class WhatToWatchController extends AbstractController
         }
     }
 
-    #[Route('/movie/{id}', name: 'movie_content', requirements: ['id' => '\d+'])]
-    public function movieContent(int $id): Response
-    {
-        return $this->getContentDetail($id, false);
-    }
-
-    #[Route('/tv/{id}', name: 'tv_content', requirements: ['id' => '\d+'])]
-    public function tvContent(int $id): Response
-    {
-        return $this->getContentDetail($id, true);
-    }
-
     #[Route('/api/search', name: 'api_search', methods: ['GET'])]
     public function search(Request $request): JsonResponse
     {
@@ -349,6 +340,7 @@ class WhatToWatchController extends AbstractController
             $cacheKey = "{$type}_{$id}";
 
             $item = $this->cache->get($cacheKey, function (ItemInterface $item) use ($id, $type) {
+
                 $item->expiresAfter(self::CACHE_TTL_CONTENT);
                 return $this->makeApiRequest("/{$type}/{$id}", [
                     'append_to_response' => 'videos,credits,recommendations,similar'
