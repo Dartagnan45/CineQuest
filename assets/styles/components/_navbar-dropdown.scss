@@ -6,6 +6,7 @@
         max-height: 400px;
         overflow-y: auto;
         overflow-x: hidden;
+        z-index: 2200 !important;
 
         // Personnaliser la scrollbar pour qu'elle soit jolie
         &::-webkit-scrollbar {
@@ -39,6 +40,7 @@
         .dropdown-item {
             transition: all 0.2s ease;
             padding: 0.5rem 1rem;
+            z-index: 2100;
 
             &:hover {
                 background: rgba(var(--bs-primary-rgb), 0.1);

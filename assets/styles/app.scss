@@ -3041,3 +3041,104 @@ a:hover .actor-name {
         page-break-inside: avoid;
     }
 }
+
+// =============================================================================
+// AJOUT POUR ROTTEN TOMATOES & METACRITIC
+// À ajouter à la fin de la section "NOTES AVEC VRAIES ICÔNES CLIQUABLES"
+// =============================================================================
+
+// Rotten Tomatoes - Fond transparent (le logo est déjà coloré)
+.rating-logo-wrapper.rt-logo-bg {
+    background: transparent;
+    padding: 0.5rem;
+    box-shadow: #000 0px 0px 10px;
+}
+
+.rating-logo-img.rt-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+// Metacritic - Affichage de la note dans un carré coloré
+.rating-logo-wrapper.metacritic-logo-bg {
+     background: transparent;
+    padding: 0.5rem;
+    box-shadow: #000 0px 0px 10px;
+}
+
+.rating-logo-img.metacritic-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.metacritic-score-box {
+    width: 60px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 0.375rem;
+    box-shadow: #000 0px 0px 10px;
+
+    // Couleur verte pour les bonnes notes (>= 61)
+    // Note: Le style dynamique sera appliqué via JavaScript ou Twig si nécessaire
+    // Par défaut, on met un dégradé vert (bon score)
+    background: linear-gradient(135deg, #66cc33 0%, #5cb830 100%);
+}
+
+// Score RT en rouge tomate
+.rating-score.rt-score .score-number {
+    color: #fa320a;
+    font-weight: 700;
+}
+
+// Score Metacritic en vert
+.rating-score.metacritic-score .score-number {
+    color: #66cc33;
+    font-weight: 700;
+}
+
+// Hover effects pour les nouveaux logos
+.rating-logo-link:hover .rating-logo-wrapper.rt-logo-bg,
+.rating-logo-link:hover .rating-logo-wrapper.metacritic-logo-bg {
+    box-shadow: 0 4px 15px rgba(55, 212, 207, 0.5);
+}
+
+// =============================================================================
+// RESPONSIVE - ROTTEN TOMATOES & METACRITIC
+// =============================================================================
+
+@media (max-width: 768px) {
+    .metacritic-score-box {
+        width: 50px;
+        height: 40px;
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .metacritic-score-box {
+        width: 45px;
+        height: 35px;
+        font-size: 1.3rem;
+    }
+}
+
+// =============================================================================
+// ANIMATIONS POUR LES NOUVELLES NOTES
+// =============================================================================
+
+.rating-item {
+    &:nth-child(3) {
+        animation-delay: 0.3s;
+    }
+
+    &:nth-child(4) {
+        animation-delay: 0.4s;
+    }
+}

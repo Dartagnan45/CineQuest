@@ -12,10 +12,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Psr\Log\LoggerInterface;
 
 /**
- * Version 5 - Simple et Efficace
- * - Icônes TMDb/IMDb cliquables vers les sites
+ * Version 6 - Ajout Rotten Tomatoes & Metacritic
+ * - Icônes TMDb/IMDb/RT/Metacritic cliquables vers les sites
  * - Plateformes via TMDb API
- * - Pas de flip (inutile sans verso)
+ * - Notes RT et Metacritic extraites via OMDb
  */
 class ContentController extends AbstractController
 {
@@ -66,7 +66,7 @@ class ContentController extends AbstractController
             // --- Extraction des plateformes TMDb ---
             $watchProviders = $this->extractWatchProviders($item);
 
-            // --- Création des liens TMDb et IMDb ---
+            // --- Création des liens TMDb, IMDb, RT et Metacritic ---
             $links = $this->generateLinks($item, $type, $id);
 
             return $this->render('what_to_watch/content.html.twig', [
@@ -90,7 +90,7 @@ class ContentController extends AbstractController
     }
 
     /**
-     * Récupère les données OMDb pour avoir la note IMDb
+     * Récupère les données OMDb pour avoir les notes IMDb, Rotten Tomatoes et Metacritic
      */
     private function fetchOmdbData(array $item): ?array
     {
@@ -105,7 +105,7 @@ class ContentController extends AbstractController
             }
 
             $cacheKey = "omdb_{$imdbId}";
-            return $this->cache->get($cacheKey, function (ItemInterface $ci) use ($imdbId) {
+            $omdbData = $this->cache->get($cacheKey, function (ItemInterface $ci) use ($imdbId) {
                 $ci->expiresAfter(24 * 3600);
                 $response = $this->client->request('GET', 'https://www.omdbapi.com/', [
                     'query' => [
@@ -120,6 +120,20 @@ class ContentController extends AbstractController
                 }
                 return $response->toArray(false);
             });
+
+            // Extraction des notes Rotten Tomatoes et Metacritic depuis le tableau Ratings
+            if ($omdbData && isset($omdbData['Ratings'])) {
+                foreach ($omdbData['Ratings'] as $rating) {
+                    if ($rating['Source'] === 'Rotten Tomatoes') {
+                        $omdbData['RottenTomatoesScore'] = $rating['Value'];
+                    }
+                    if ($rating['Source'] === 'Metacritic') {
+                        $omdbData['MetacriticScore'] = $rating['Value'];
+                    }
+                }
+            }
+
+            return $omdbData;
         } catch (\Throwable $e) {
             $this->logger->warning('Erreur OMDb', [
                 'message' => $e->getMessage(),
@@ -165,13 +179,15 @@ class ContentController extends AbstractController
     }
 
     /**
-     * Génère les liens vers TMDb et IMDb
+     * Génère les liens vers TMDb, IMDb, Rotten Tomatoes et Metacritic
      */
     private function generateLinks(array $item, string $type, int $id): array
     {
         $links = [
             'tmdb' => null,
             'imdb' => null,
+            'rotten_tomatoes' => null,
+            'metacritic' => null,
         ];
 
         // Lien TMDb
@@ -183,7 +199,66 @@ class ContentController extends AbstractController
             $links['imdb'] = "https://www.imdb.com/title/{$imdbId}/";
         }
 
+        // Liens Rotten Tomatoes et Metacritic basés sur le titre
+        $title = $type === 'movie' ? ($item['title'] ?? '') : ($item['name'] ?? '');
+        if ($title) {
+            // Rotten Tomatoes utilise des UNDERSCORES
+            $rtSlug = $this->createSlugWithUnderscores($title);
+            $rtPrefix = $type === 'movie' ? 'm' : 'tv';
+            $links['rotten_tomatoes'] = "https://www.rottentomatoes.com/{$rtPrefix}/{$rtSlug}";
+
+            // Metacritic utilise des TIRETS
+            $metacriticSlug = $this->createSlugWithDashes($title);
+            $links['metacritic'] = "https://www.metacritic.com/{$type}/{$metacriticSlug}";
+        }
+
         return $links;
+    }
+
+    /**
+     * Crée un slug avec UNDERSCORES pour Rotten Tomatoes
+     */
+    private function createSlugWithUnderscores(string $title): string
+    {
+        // Convertir en minuscules
+        $slug = mb_strtolower($title, 'UTF-8');
+
+        // Remplacer les caractères accentués
+        $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug);
+
+        // Remplacer les espaces et caractères spéciaux par des underscores
+        $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
+
+        // Supprimer les underscores en début/fin
+        $slug = trim($slug, '_');
+
+        // Remplacer les multiples underscores consécutifs par un seul
+        $slug = preg_replace('/_+/', '_', $slug);
+
+        return $slug;
+    }
+
+    /**
+     * Crée un slug avec TIRETS pour Metacritic
+     */
+    private function createSlugWithDashes(string $title): string
+    {
+        // Convertir en minuscules
+        $slug = mb_strtolower($title, 'UTF-8');
+
+        // Remplacer les caractères accentués
+        $slug = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $slug);
+
+        // Remplacer les espaces et caractères spéciaux par des tirets
+        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
+
+        // Supprimer les tirets en début/fin
+        $slug = trim($slug, '-');
+
+        // Remplacer les multiples tirets consécutifs par un seul
+        $slug = preg_replace('/-+/', '-', $slug);
+
+        return $slug;
     }
 
     /**
