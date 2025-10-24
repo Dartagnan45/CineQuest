@@ -12,8 +12,10 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Psr\Log\LoggerInterface;
 
 /**
- * Gère les pages de détail (film ou série)
- * et enrichit les données avec OMDb (note IMDb) et les plateformes de streaming
+ * Version 5 - Simple et Efficace
+ * - Icônes TMDb/IMDb cliquables vers les sites
+ * - Plateformes via TMDb API
+ * - Pas de flip (inutile sans verso)
  */
 class ContentController extends AbstractController
 {
@@ -45,14 +47,14 @@ class ContentController extends AbstractController
             $type = $isSeries ? 'tv' : 'movie';
             $cacheKey = "detail_{$type}_{$id}";
 
-            // --- Récupération des données TMDb avec watch providers ---
+            // --- Récupération des données TMDb ---
             $item = $this->cache->get($cacheKey, function (ItemInterface $cacheItem) use ($id, $type) {
                 $cacheItem->expiresAfter(6 * 3600);
                 $response = $this->client->request('GET', "https://api.themoviedb.org/3/{$type}/{$id}", [
                     'query' => [
                         'api_key' => $this->tmdbApiKey,
                         'language' => 'fr-FR',
-                        'append_to_response' => 'videos,credits,recommendations,similar,external_ids,watch/providers,images'
+                        'append_to_response' => 'videos,credits,recommendations,similar,external_ids,watch/providers'
                     ]
                 ]);
                 return $response->toArray();
@@ -61,14 +63,18 @@ class ContentController extends AbstractController
             // --- Récupération des données OMDb ---
             $omdb = $this->fetchOmdbData($item);
 
-            // --- Extraction des plateformes de streaming pour la France ---
-            $watchProviders = $this->extractWatchProviders($item, $type, $id);
+            // --- Extraction des plateformes TMDb ---
+            $watchProviders = $this->extractWatchProviders($item);
+
+            // --- Création des liens TMDb et IMDb ---
+            $links = $this->generateLinks($item, $type, $id);
 
             return $this->render('what_to_watch/content.html.twig', [
                 'item' => $item,
                 'isSeries' => $isSeries,
                 'omdb' => $omdb,
                 'watchProviders' => $watchProviders,
+                'links' => $links,
             ]);
         } catch (\Throwable $e) {
             $this->logger->error('Erreur détail contenu', [
@@ -83,6 +89,9 @@ class ContentController extends AbstractController
         }
     }
 
+    /**
+     * Récupère les données OMDb pour avoir la note IMDb
+     */
     private function fetchOmdbData(array $item): ?array
     {
         try {
@@ -121,15 +130,14 @@ class ContentController extends AbstractController
     }
 
     /**
-     * Extrait les plateformes de streaming disponibles en France avec le lien TMDb
+     * Extrait les plateformes de streaming disponibles en France (TMDb API)
      */
-    private function extractWatchProviders(array $item, string $type, int $id): array
+    private function extractWatchProviders(array $item): array
     {
         $providers = [
             'flatrate' => [],
             'rent' => [],
             'buy' => [],
-            'link' => null
         ];
 
         if (!isset($item['watch/providers']['results']['FR'])) {
@@ -137,14 +145,6 @@ class ContentController extends AbstractController
         }
 
         $frenchProviders = $item['watch/providers']['results']['FR'];
-
-        // Lien TMDb vers la page des plateformes
-        if (isset($frenchProviders['link'])) {
-            $providers['link'] = $frenchProviders['link'];
-        } else {
-            // Créer le lien manuellement si non fourni
-            $providers['link'] = "https://www.themoviedb.org/{$type}/{$id}/watch?locale=FR";
-        }
 
         // Streaming (abonnement)
         if (isset($frenchProviders['flatrate'])) {
@@ -165,6 +165,28 @@ class ContentController extends AbstractController
     }
 
     /**
+     * Génère les liens vers TMDb et IMDb
+     */
+    private function generateLinks(array $item, string $type, int $id): array
+    {
+        $links = [
+            'tmdb' => null,
+            'imdb' => null,
+        ];
+
+        // Lien TMDb
+        $links['tmdb'] = "https://www.themoviedb.org/{$type}/{$id}";
+
+        // Lien IMDb
+        $imdbId = $item['imdb_id'] ?? ($item['external_ids']['imdb_id'] ?? null);
+        if ($imdbId) {
+            $links['imdb'] = "https://www.imdb.com/title/{$imdbId}/";
+        }
+
+        return $links;
+    }
+
+    /**
      * Page de détails d'une personne (acteur/réalisateur)
      */
     #[Route('/person/{id}', name: 'person_details', requirements: ['id' => '\d+'])]
@@ -174,7 +196,7 @@ class ContentController extends AbstractController
             $cacheKey = "person_{$id}";
 
             $person = $this->cache->get($cacheKey, function (ItemInterface $cacheItem) use ($id) {
-                $cacheItem->expiresAfter(24 * 3600); // Cache 24h pour les personnes
+                $cacheItem->expiresAfter(24 * 3600);
 
                 $response = $this->client->request('GET', "https://api.themoviedb.org/3/person/{$id}", [
                     'query' => [
@@ -187,16 +209,15 @@ class ContentController extends AbstractController
                 return $response->toArray();
             });
 
-            // Trier les films par date de sortie (plus récents en premier)
+            // Trier les films par date
             $movieCredits = $person['movie_credits']['cast'] ?? [];
             $movieCrew = $person['movie_credits']['crew'] ?? [];
 
-            // Filtrer les films où la personne est réalisateur
+            // Films réalisés
             $directedMovies = array_filter($movieCrew, function ($credit) {
                 return $credit['job'] === 'Director';
             });
 
-            // Trier par date de sortie décroissante
             usort($movieCredits, function ($a, $b) {
                 $dateA = $a['release_date'] ?? '1900-01-01';
                 $dateB = $b['release_date'] ?? '1900-01-01';
@@ -209,7 +230,6 @@ class ContentController extends AbstractController
                 return $dateB <=> $dateA;
             });
 
-            // Séries
             $tvCredits = $person['tv_credits']['cast'] ?? [];
             usort($tvCredits, function ($a, $b) {
                 $dateA = $a['first_air_date'] ?? '1900-01-01';

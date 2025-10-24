@@ -2561,72 +2561,30 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
 // Styles pour les notes et les plateformes de streaming
 
 // =============================================================================
-// STYLES POUR LE FLIP DU POSTER (Recto/Verso)
+// STYLES V5 - SIMPLE ET EFFICACE
+// Icônes TMDb/IMDb cliquables - Plateformes TMDb - Pas de flip
 // =============================================================================
 
-.poster-flip-container {
-    perspective: 1000px;
+// =============================================================================
+// POSTER CONTAINER (sans flip)
+// =============================================================================
+
+.poster-container {
     position: relative;
     width: 100%;
 }
 
-.poster-flip-inner {
-    position: relative;
-    width: 100%;
-    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    transform-style: preserve-3d;
-
-    &.flipped {
-        transform: rotateY(180deg);
-    }
-}
-
-.poster-flip-front,
-.poster-flip-back {
-    width: 100%;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-}
-
-.poster-flip-back {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transform: rotateY(180deg);
-}
-
-// Bouton de flip
-.poster-flip-button {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.7);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: #fff;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 10;
+.movie-poster {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 
     &:hover {
-        background: rgba(0, 0, 0, 0.9);
-        border-color: rgba(255, 255, 255, 0.8);
-        transform: scale(1.1) rotate(180deg);
-    }
-
-    &:active {
-        transform: scale(0.95);
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(55, 212, 207, 0.3);
     }
 }
 
 // =============================================================================
-// LIGHTBOX POUR AGRANDIR L'IMAGE
+// LIGHTBOX (identique mais simplifié)
 // =============================================================================
 
 .poster-lightbox {
@@ -2671,8 +2629,12 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes zoomIn {
@@ -2687,7 +2649,7 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
 }
 
 // =============================================================================
-// STYLES POUR LE RÉALISATEUR AVEC PHOTO
+// RÉALISATEUR
 // =============================================================================
 
 .director-photo {
@@ -2729,7 +2691,7 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
 }
 
 // =============================================================================
-// STYLES POUR LES ACTEURS CLIQUABLES
+// ACTEURS CLIQUABLES
 // =============================================================================
 
 .actor-hover {
@@ -2752,7 +2714,7 @@ a:hover .actor-name {
 }
 
 // =============================================================================
-// STYLES POUR LES NOTES (Version 2)
+// NOTES AVEC VRAIES ICÔNES CLIQUABLES
 // =============================================================================
 
 .ratings-section {
@@ -2788,30 +2750,58 @@ a:hover .actor-name {
     }
 }
 
+// Lien cliquable sur le logo
+.rating-logo-link {
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease;
+
+    &:hover {
+        transform: scale(1.1);
+    }
+}
+
 .rating-logo-wrapper {
     flex-shrink: 0;
-    width: 50px;
+    width: 60px;
     height: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.1);
     border-radius: 0.375rem;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
 
-    &.imdb-wrapper {
-        background: #f5c518;
+    // TMDb avec dégradé bleu officiel
+    &.tmdb-logo-bg {
+        //background: linear-gradient(to right, #01b4e4 0%, #90cea1 100%);
+        background: transparent;
+        box-shadow: #000 0px 0px 10px;
+    }
+
+    // IMDb avec fond transparent (le logo a déjà le fond jaune)
+    &.imdb-logo-bg {
+        background: transparent;
+        padding: 0;
+        box-shadow: #000 0px 0px 10px;
     }
 }
 
-.rating-logo.tmdb-logo {
-    width: 40px;
-    height: auto;
-    filter: brightness(0) invert(1);
+.rating-logo-link:hover .rating-logo-wrapper {
+    box-shadow: 0 4px 15px rgba(55, 212, 207, 0.5);
 }
 
-.imdb-icon {
-    font-size: 2.5rem;
-    color: #000;
+.rating-logo-img {
+    width: 100%;
+    height: auto;
+    display: block;
+
+    &.imdb-logo-img {
+        // IMDb logo est déjà avec fond jaune dans l'image SVG
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 }
 
 .rating-details {
@@ -2841,16 +2831,16 @@ a:hover .actor-name {
     font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.6);
     font-weight: 400;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 // =============================================================================
-// STYLES POUR LES PLATEFORMES DE STREAMING (avec liens)
+// PLATEFORMES DE STREAMING - TMDB
 // =============================================================================
 
 .watch-provider-item {
     position: relative;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    text-decoration: none;
     display: inline-block;
 
     img {
@@ -2876,13 +2866,6 @@ a:hover .actor-name {
     }
 }
 
-// Titres des catégories
-.watch-provider-item + p {
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-size: 0.7rem;
-}
-
 .gap-2 {
     gap: 0.5rem !important;
 }
@@ -2902,15 +2885,6 @@ a:hover .actor-name {
 // =============================================================================
 
 @media (max-width: 768px) {
-    // Flip button plus petit
-    .poster-flip-button {
-        width: 35px;
-        height: 35px;
-        font-size: 1rem;
-        bottom: 10px;
-        right: 10px;
-    }
-
     // Lightbox close button
     .lightbox-close {
         top: 10px;
@@ -2932,16 +2906,8 @@ a:hover .actor-name {
     }
 
     .rating-logo-wrapper {
-        width: 40px;
+        width: 50px;
         height: 40px;
-    }
-
-    .rating-logo.tmdb-logo {
-        width: 30px;
-    }
-
-    .imdb-icon {
-        font-size: 2rem;
     }
 
     .rating-score .score-number {
@@ -2978,26 +2944,12 @@ a:hover .actor-name {
     }
 
     .rating-logo-wrapper {
-        width: 35px;
+        width: 45px;
         height: 35px;
-    }
-
-    .rating-logo.tmdb-logo {
-        width: 25px;
-    }
-
-    .imdb-icon {
-        font-size: 1.75rem;
     }
 
     .rating-score .score-number {
         font-size: 1.1rem;
-    }
-
-    // Plateformes plus petites
-    .watch-provider-item img {
-        width: 40px !important;
-        height: 40px !important;
     }
 
     // Photo réalisateur encore plus petite
@@ -3006,50 +2958,11 @@ a:hover .actor-name {
         width: 50px;
         height: 50px;
     }
-}
 
-// =============================================================================
-// DARK MODE / LIGHT MODE
-// =============================================================================
-
-body.dark-mode {
-    .rating-item {
-        background: rgba(255, 255, 255, 0.08);
-
-        &:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-    }
-
-    .rating-logo-wrapper {
-        background: rgba(255, 255, 255, 0.12);
-    }
-
+    // Plateformes plus petites
     .watch-provider-item img {
-        border-color: rgba(255, 255, 255, 0.3);
-    }
-
-    .poster-flip-button {
-        background: rgba(0, 0, 0, 0.8);
-        border-color: rgba(255, 255, 255, 0.4);
-    }
-}
-
-body:not(.dark-mode) {
-    .rating-item {
-        background: rgba(0, 0, 0, 0.2);
-
-        &:hover {
-            background: rgba(0, 0, 0, 0.3);
-        }
-    }
-
-    .rating-logo-wrapper {
-        background: rgba(0, 0, 0, 0.3);
-    }
-
-    .watch-provider-item img {
-        border-color: rgba(0, 0, 0, 0.2);
+        width: 40px !important;
+        height: 40px !important;
     }
 }
 
@@ -3091,12 +3004,13 @@ body:not(.dark-mode) {
 }
 
 // =============================================================================
-// AMÉLIORATION DE L'ACCESSIBILITÉ
+// ACCESSIBILITÉ
 // =============================================================================
 
-.watch-provider-item:focus-within {
+.rating-logo-link:focus-within {
     outline: 2px solid #37d4cf;
     outline-offset: 2px;
+    border-radius: 0.375rem;
 }
 
 .rating-item:focus-within {
@@ -3104,21 +3018,11 @@ body:not(.dark-mode) {
     outline-offset: 2px;
 }
 
-.poster-flip-button:focus {
-    outline: 2px solid #37d4cf;
-    outline-offset: 2px;
-}
-
-.rating-votes {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
 // =============================================================================
 // PRINT STYLES
 // =============================================================================
 
 @media print {
-    .poster-flip-button,
     .lightbox-close,
     .favorite-star,
     .in-lists-badge {
@@ -3135,107 +3039,5 @@ body:not(.dark-mode) {
 
     .rating-item {
         page-break-inside: avoid;
-    }
-}
-
-// =============================================================================
-// STYLES POUR LA PAGE PERSONNE (acteur/réalisateur)
-// =============================================================================
-
-.movie-card-person {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    img {
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-    }
-
-    &:hover {
-        transform: translateY(-10px);
-
-        img {
-            box-shadow: 0 10px 25px rgba(55, 212, 207, 0.5);
-            border: 2px solid #37d4cf;
-        }
-
-        p {
-            color: #37d4cf !important;
-        }
-    }
-}
-
-.poster-placeholder {
-    width: 100%;
-    aspect-ratio: 2/3;
-    background: rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.3);
-}
-
-// Card de la personne
-.card {
-    border: none;
-
-    .card-img-top {
-        border-radius: 0.25rem 0.25rem 0 0;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-}
-
-// Photo de profil grande
-.card-img-top {
-    max-height: 600px;
-    object-fit: cover;
-}
-
-// Badges pour les compteurs
-.badge.bg-primary {
-    font-size: 0.9rem;
-    padding: 0.4rem 0.8rem;
-}
-
-// Animations pour les cartes de films
-@keyframes slideInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.movie-card-person {
-    animation: slideInUp 0.6s ease-out;
-
-    @for $i from 1 through 20 {
-        &:nth-child(#{$i}) {
-            animation-delay: #{$i * 0.05}s;
-        }
-    }
-}
-
-// Responsive
-@media (max-width: 768px) {
-    .card-img-top {
-        max-height: 400px;
-    }
-
-    .card-body {
-        padding: 1rem !important;
-    }
-
-    h2.card-title {
-        font-size: 1.5rem;
-    }
-
-    h3.card-title {
-        font-size: 1.3rem;
     }
 }

@@ -23,45 +23,20 @@
 					<div class="row">
 						<div
 							class="col-md-4">
-							{# --- POSTER AVEC FLIP RECTO/VERSO --- #}
-							<div class="poster-flip-container position-relative" data-controller="poster-flip">
-								<div
-									class="poster-flip-inner">
-									{# RECTO (Affiche principale) #}
-									<div class="poster-flip-front">
-										{% if item.poster_path %}
-											<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" alt="Poster de {{ isSeries ? item.name : item.title }}" data-action="click->poster-flip#openLightbox" style="cursor: pointer;">
-										{% else %}
-											<img class="movie-poster img-fluid rounded" src="https://placehold.co/500x750/222/FFF?text=Pas+d'affiche" alt="Pas d'affiche disponible">
-										{% endif %}
+							{# --- POSTER SIMPLE (sans flip) --- #}
+							<div class="poster-container position-relative">
+								{% if item.poster_path %}
+									<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" alt="Poster de {{ isSeries ? item.name : item.title }}" data-action="click->poster-lightbox#open" data-controller="poster-lightbox" data-poster-lightbox-url-value="https://image.tmdb.org/t/p/original{{ item.poster_path }}" style="cursor: pointer;">
+								{% else %}
+									<img class="movie-poster img-fluid rounded" src="https://placehold.co/500x750/222/FFF?text=Pas+d'affiche" alt="Pas d'affiche disponible">
+								{% endif %}
 
-										{# Note TMDb #}
-										{% if item.vote_average is defined and item.vote_average > 0 %}
-											<div class="content-rating">
-												{{ item.vote_average|round(1, 'floor') }}
-											</div>
-										{% endif %}
-
-										{# Bouton flip vers le verso #}
-										{% if item.backdrop_path %}
-											<button class="poster-flip-button" data-action="click->poster-flip#flip" title="Voir le verso" type="button">
-												<i class="fas fa-sync-alt"></i>
-											</button>
-										{% endif %}
+								{# Note TMDb #}
+								{% if item.vote_average is defined and item.vote_average > 0 %}
+									<div class="content-rating">
+										{{ item.vote_average|round(1, 'floor') }}
 									</div>
-
-									{# VERSO (Backdrop) #}
-									<div class="poster-flip-back">
-										{% if item.backdrop_path %}
-											<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.backdrop_path }}" alt="Backdrop de {{ isSeries ? item.name : item.title }}" data-action="click->poster-flip#openLightbox" style="cursor: pointer;">
-										{% endif %}
-
-										{# Bouton flip vers le recto #}
-										<button class="poster-flip-button" data-action="click->poster-flip#flip" title="Voir le recto" type="button">
-											<i class="fas fa-undo"></i>
-										</button>
-									</div>
-								</div>
+								{% endif %}
 
 								{# Boutons favoris / signets #}
 								{% if app.user %}
@@ -92,8 +67,8 @@
 							</div>
 
 							{# Lightbox pour agrandir l'image #}
-							<div id="posterLightbox" class="poster-lightbox" data-controller="poster-flip" data-action="click->poster-flip#closeLightbox">
-								<span class="lightbox-close" data-action="click->poster-flip#closeLightbox">&times;</span>
+							<div id="posterLightbox" class="poster-lightbox" data-controller="poster-lightbox" data-action="click->poster-lightbox#close">
+								<span class="lightbox-close" data-action="click->poster-lightbox#close">&times;</span>
 								<img class="lightbox-content" id="lightboxImage" alt="">
 							</div>
 
@@ -124,7 +99,7 @@
 										€</p>
 								{% endif %}
 
-								{# --- NOTES TMDb ET IMDb --- #}
+								{# --- NOTES TMDb ET IMDb AVEC VRAIES ICÔNES CLIQUABLES --- #}
 								<div class="mt-3 ratings-section">
 									<h5 class="mb-3">
 										<strong>
@@ -135,13 +110,15 @@
 
 									<div
 										class="ratings-container">
-										{# Note TMDb (en pourcentage) #}
+										{# Note TMDb avec icône cliquable #}
 										{% if item.vote_average is defined and item.vote_average > 0 %}
 											{% set tmdbPercent = (item.vote_average * 10)|round(0) %}
 											<div class="rating-item mb-3">
-												<div class="rating-logo-wrapper">
-													<img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDb" class="rating-logo tmdb-logo">
-												</div>
+												<a href="{{ links.tmdb }}" target="_blank" rel="noopener noreferrer" class="rating-logo-link" title="Voir sur TMDb">
+													<div class="rating-logo-wrapper tmdb-logo-bg">
+														<img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDb" class="rating-logo-img">
+													</div>
+												</a>
 												<div class="rating-details">
 													<div class="rating-score tmdb-score">
 														<span class="score-number">{{ tmdbPercent }}%</span>
@@ -156,14 +133,16 @@
 											</div>
 										{% endif %}
 
-										{# Note IMDb (sur 10) #}
+										{# Note IMDb avec icône cliquable #}
 										{% if omdb is defined and omdb is not null %}
 											{% set imdbRating = omdb.imdbRating ?? null %}
-											{% if imdbRating and imdbRating != 'N/A' %}
+											{% if imdbRating and imdbRating != 'N/A' and links.imdb %}
 												<div class="rating-item mb-3">
-													<div class="rating-logo-wrapper imdb-wrapper">
-														<i class="fab fa-imdb imdb-icon"></i>
-													</div>
+													<a href="{{ links.imdb }}" target="_blank" rel="noopener noreferrer" class="rating-logo-link" title="Voir sur IMDb">
+														<div class="rating-logo-wrapper imdb-logo-bg">
+															<img src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg" alt="IMDb" class="rating-logo-img imdb-logo-img">
+														</div>
+													</a>
 													<div class="rating-details">
 														<div class="rating-score imdb-score">
 															<span class="score-number">{{ imdbRating }}/10</span>
@@ -215,7 +194,7 @@
 							<div
 								class="row mb-4">
 
-								{# --- RÉALISATEUR AVEC PHOTO + PLATEFORMES --- #}
+								{# --- RÉALISATEUR + PLATEFORMES TMDB --- #}
 								<div class="col-12 mb-4">
 									<div class="row align-items-start">
 
@@ -254,16 +233,12 @@
 												<p class="real mt-2">Inconnu</p>
 											{% endif %}
 
-											{# --- PLATEFORMES DE STREAMING AVEC LIENS --- #}
-											{% if watchProviders is defined %}
+											{# --- PLATEFORMES DE STREAMING TMDB --- #}
+											{% if watchProviders.flatrate is not empty or watchProviders.rent is not empty or watchProviders.buy is not empty %}
 												<div class="mt-4">
-													<h5 class="mb-3">
-														<strong>
-															<i class="fas fa-tv text-primary me-1"></i>
-															Disponible sur
-														</strong>
-													</h5>
-
+													<h4 class="director d-inline-block px-2 rounded mb-3">
+														Disponible sur
+													</h4>
 													{# Streaming (abonnement) #}
 													{% if watchProviders.flatrate is not empty %}
 														<div class="mb-3">
@@ -273,9 +248,9 @@
 															</p>
 															<div class="d-flex flex-wrap gap-2">
 																{% for provider in watchProviders.flatrate %}
-																	<a href="{{ watchProviders.link ?? '#' }}" target="_blank" rel="noopener noreferrer" class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="Regarder sur {{ provider.provider_name }}">
+																	<div class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ provider.provider_name }}">
 																		<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
-																	</a>
+																	</div>
 																{% endfor %}
 															</div>
 														</div>
@@ -290,9 +265,9 @@
 															</p>
 															<div class="d-flex flex-wrap gap-2">
 																{% for provider in watchProviders.rent %}
-																	<a href="{{ watchProviders.link ?? '#' }}" target="_blank" rel="noopener noreferrer" class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="Louer sur {{ provider.provider_name }}">
+																	<div class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ provider.provider_name }}">
 																		<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
-																	</a>
+																	</div>
 																{% endfor %}
 															</div>
 														</div>
@@ -307,21 +282,20 @@
 															</p>
 															<div class="d-flex flex-wrap gap-2">
 																{% for provider in watchProviders.buy %}
-																	<a href="{{ watchProviders.link ?? '#' }}" target="_blank" rel="noopener noreferrer" class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="Acheter sur {{ provider.provider_name }}">
+																	<div class="watch-provider-item" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ provider.provider_name }}">
 																		<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
-																	</a>
+																	</div>
 																{% endfor %}
 															</div>
 														</div>
 													{% endif %}
-
-													{# Aucune plateforme #}
-													{% if watchProviders.flatrate is empty and watchProviders.rent is empty and watchProviders.buy is empty %}
-														<p class="text-muted small fst-italic">
-															<i class="fas fa-info-circle me-1"></i>
-															Aucune plateforme disponible en France pour le moment.
-														</p>
-													{% endif %}
+												</div>
+											{% else %}
+												<div class="mt-4">
+													<p class="text-muted small fst-italic">
+														<i class="fas fa-info-circle me-1"></i>
+														Aucune plateforme disponible en France pour le moment.
+													</p>
 												</div>
 											{% endif %}
 										</div>
