@@ -6,8 +6,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="container my-5 user-movie-list">
-
+	<div class="container my-5 user-movie-list">
 
 		<div class="d-flex justify-content-between align-items-center mb-4">
 			<h1 class="main-title">{{ movie_list.name }}</h1>
@@ -18,11 +17,18 @@
 					Retour aux listes
 				</a>
 
-				{# Bouton de suppression de la liste #}
-				<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteListModal">
-					<i class="fas fa-trash"></i>
-					Supprimer la liste
-				</button>
+				{% if not movie_list.isSystem %}
+					<a href="{{ path('app_movie_list_edit', {'id': movie_list.id}) }}" class="btn btn-primary">
+						<i class="fas fa-edit"></i>
+						Modifier
+					</a>
+
+					{# Bouton de suppression de la liste #}
+					<button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteListModal">
+						<i class="fas fa-trash"></i>
+						Supprimer
+					</button>
+				{% endif %}
 			</div>
 		</div>
 
@@ -42,23 +48,30 @@
 			{% endif %}
 		</p>
 
-		{% if items is not empty %}
+		{% if items_with_data is not empty %}
 			<div class="movie-card-list mt-4">
-				{% for item in items %}
+				{% for item_data in items_with_data %}
+					{% set entity = item_data.entity %}
+					{% set data = item_data.data %}
+					{% set isSeries = entity.tmdbType == 'tv' %}
+
 					<div class="card">
 
-						{% set item_path = item.isSeries ? path('tv_content', {'id': item.id}) : path('movie_content', {'id': item.id}) %}
+						{% set item_path = isSeries ? path('tv_content', {'id': entity.tmdbId}) : path('movie_content', {'id': entity.tmdbId}) %}
 
 						<a href="{{ item_path }}" class="text-decoration-none">
 							<div class="card-img-top-wrapper">
-								<img src="{{ item.poster_path ? 'https://image.tmdb.org/t/p/w500' ~ item.poster_path : asset('build/images/cine-room.jpeg') }}" class="card-img-top" alt="{{ item.isSeries ? item.name : item.title }}" loading="lazy">
+								<img src="{{ data.poster_path ? 'https://image.tmdb.org/t/p/w500' ~ data.poster_path : asset('build/images/cine-room.jpeg') }}" class="card-img-top" alt="{{ isSeries ? data.name : data.title }}" loading="lazy">
 							</div>
 						</a>
+						{# ... juste après l'image de la carte #}
+						{% include 'partials/badges.html.twig' with { badges: data.badges|default([]) } %}
+
 
 						{# Bouton de suppression de l'item #}
 						<div class="card-remove-btn">
-							<form method="post" action="{{ path('app_movie_list_delete_item', {'id': item.listItemId}) }}" class="d-inline">
-								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.listItemId) }}">
+							<form method="post" action="{{ path('app_movie_list_delete_item', {'id': entity.id}) }}" class="d-inline">
+								<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ entity.id) }}">
 								<button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Retirer cet élément de la liste ?')">
 									<i class="fas fa-times"></i>
 								</button>
@@ -66,30 +79,30 @@
 						</div>
 
 						<div class="card-body">
-							{% if item.vote_average > 0 %}
+							{% if data.vote_average > 0 %}
 								<div class="movie-rating">
-									{{ item.vote_average|round(1, 'floor') }}
+									{{ (data.vote_average * 10)|round }}%
 								</div>
 							{% endif %}
 
 							<p class="card-text text-muted small">
-								{% if item.isSeries %}
+								{% if isSeries %}
 									Sortie :
-									{{ item.first_air_date ? item.first_air_date|date('Y') : 'Date inconnue' }}
+									{{ data.first_air_date ? data.first_air_date|date('Y') : 'Date inconnue' }}
 								{% else %}
 									Sortie :
-									{{ item.release_date ? item.release_date|date('Y') : 'Date inconnue' }}
+									{{ data.release_date ? data.release_date|date('Y') : 'Date inconnue' }}
 								{% endif %}
 							</p>
-                            <h5 class="card-title">{{ item.isSeries ? item.name : item.title }}</h5>
+							<h5 class="card-title">{{ isSeries ? data.name : data.title }}</h5>
 							<p class="card-text">
-								{{ item.overview|slice(0, 120) ~ (item.overview|length > 120 ? '...' : '') }}
+								{{ data.overview|slice(0, 120) ~ (data.overview|length > 120 ? '...' : '') }}
 							</p>
 
 							<p class="card-text text-muted small">
 								<i class="fas fa-plus-circle"></i>
 								Ajouté le
-								{{ item.addedAt|date('d/m/Y') }}
+								{{ entity.addedAt|date('d/m/Y') }}
 							</p>
 						</div>
 					</div>
@@ -102,7 +115,7 @@
 			</div>
 
 			<div class="text-center mt-4">
-				<a href="{{ path('home') }}" class="btn btn-primary btn-lg">
+				<a href="{{ path('app_what_to_watch_selection') }}" class="btn btn-primary btn-lg">
 					<i class="fas fa-search"></i>
 					Découvrir du contenu
 				</a>
@@ -111,30 +124,32 @@
 	</div>
 
 	{# Modal de confirmation de suppression de la liste #}
-	<div class="modal fade" id="deleteListModal" tabindex="-1" aria-labelledby="deleteListModalLabel" aria-hidden="true">
-		<div class="modal-dialog">
-			<div class="modal-content">
-				<div class="modal-header">
-					<h5 class="modal-title" id="deleteListModalLabel">Confirmer la suppression</h5>
-					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<div class="modal-body">
-					Êtes-vous sûr de vouloir supprimer la liste
-					<strong>{{ movie_list.name }}</strong>
-					?
-																																			                Cette action est irréversible et supprimera tous les éléments de la liste.
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-					<form method="post" action="{{ path('app_movie_list_delete', {'id': movie_list.id}) }}" class="d-inline">
-						<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ movie_list.id) }}">
-						<button type="submit" class="btn btn-danger">
-							<i class="fas fa-trash"></i>
-							Supprimer définitivement
-						</button>
-					</form>
+	{% if not movie_list.isSystem %}
+		<div class="modal fade" id="deleteListModal" tabindex="-1" aria-labelledby="deleteListModalLabel" aria-hidden="true">
+			<div class="modal-dialog">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="deleteListModalLabel">Confirmer la suppression</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						Êtes-vous sûr de vouloir supprimer la liste
+						<strong>{{ movie_list.name }}</strong>
+						?
+																		Cette action est irréversible et supprimera tous les éléments de la liste.
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+						<form method="post" action="{{ path('app_movie_list_delete', {'id': movie_list.id}) }}" class="d-inline">
+							<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ movie_list.id) }}">
+							<button type="submit" class="btn btn-danger">
+								<i class="fas fa-trash"></i>
+								Supprimer définitivement
+							</button>
+						</form>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	{% endif %}
 {% endblock %}

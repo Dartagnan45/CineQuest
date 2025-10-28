@@ -1,0 +1,13 @@
+{# templates/partials/badges.html.twig #}
+{% set _badges = badges ?? (item.badges ?? []) %}
+{% if _badges is not empty %}
+	<div class="wtw-badges">
+		{% for b in _badges %}
+			<span class="wtw-badge" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ b.reason }}">
+				<i class="fas {{ b.icon }} me-1"></i>
+				{{ b.label }}
+			</span>
+		{% endfor %}
+	</div>
+{% endif %}
+

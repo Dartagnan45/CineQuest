@@ -241,3 +241,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+// Badges
+
+import 'bootstrap';
+document.addEventListener('DOMContentLoaded', () => {
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  tooltipTriggerList.forEach(el => new window.bootstrap.Tooltip(el));
+});
+

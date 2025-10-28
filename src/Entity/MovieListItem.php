@@ -27,6 +27,9 @@ class MovieListItem
     #[ORM\JoinColumn(nullable: false)]
     private ?MovieList $movieList = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $posterPath = null; // ✅ Nouveau champ pour stocker l'affiche
+
     public function getId(): ?int
     {
         return $this->id;
@@ -73,6 +76,17 @@ class MovieListItem
     public function setMovieList(?MovieList $movieList): static
     {
         $this->movieList = $movieList;
+        return $this;
+    }
+
+    public function getPosterPath(): ?string
+    {
+        return $this->posterPath;
+    }
+
+    public function setPosterPath(?string $posterPath): static
+    {
+        $this->posterPath = $posterPath;
         return $this;
     }
 }

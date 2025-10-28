@@ -118,13 +118,26 @@ class RegistrationController extends AbstractController
                 $entityManager->persist($user);
                 $entityManager->flush();
 
-                $favoritesList = new MovieList();
-                $favoritesList->setName('Favoris');
-                $favoritesList->setUser($user);
-                $favoritesList->setCreatedAt(new \DateTimeImmutable());
-                $favoritesList->setIsSystem(true);
+                // ========================================
+                // CRÉATION DES DEUX LISTES SYSTÈME
+                // ========================================
 
-                $entityManager->persist($favoritesList);
+                // Liste 1: "Mon Panthéon" (favoris)
+                $pantheonList = new MovieList();
+                $pantheonList->setName('Mon Panthéon');
+                $pantheonList->setUser($user);
+                $pantheonList->setCreatedAt(new \DateTimeImmutable());
+                $pantheonList->setIsSystem(true);
+                $entityManager->persist($pantheonList);
+
+                // Liste 2: "La Carte aux Trésors" (à voir)
+                $treasureList = new MovieList();
+                $treasureList->setName('La Carte aux Trésors');
+                $treasureList->setUser($user);
+                $treasureList->setCreatedAt(new \DateTimeImmutable());
+                $treasureList->setIsSystem(true);
+                $entityManager->persist($treasureList);
+
                 $entityManager->flush();
 
                 $this->emailVerifier->sendEmailConfirmation(
@@ -137,7 +150,7 @@ class RegistrationController extends AbstractController
                         ->htmlTemplate('registration/confirmation_email.html.twig')
                 );
 
-                $this->addFlash('success', '🎉 Votre compte a été créé avec succès ! Votre liste "Favoris" est prête. Veuillez vérifier votre email puis vous connecter.');
+                $this->addFlash('success', '🎉 Votre compte a été créé avec succès ! Vos listes "Mon Panthéon" et "La Carte aux Trésors" sont prêtes. Veuillez vérifier votre email puis vous connecter.');
 
                 return $this->redirectToRoute('app_login');
             } catch (UniqueConstraintViolationException $e) {

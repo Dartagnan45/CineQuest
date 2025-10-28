@@ -44,13 +44,20 @@ class MovieListController extends AbstractController
      * Liste toutes les listes de films de l'utilisateur connecté
      */
     #[Route('/', name: 'app_movie_list_index', methods: ['GET'])]
-    public function index(): Response
+    public function index(EntityManagerInterface $entityManager): Response
     {
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
-        // Récupère les listes avec le nombre d'items (optimisé avec une seule requête)
-        $movieLists = $this->movieListRepository->findByUserWithItemCount($user);
+        // Récupère toutes les listes de l'utilisateur AVEC leurs items (pour mosaïque d'affiches dans index.html.twig)
+        $movieLists = $entityManager->createQueryBuilder()
+            ->select('ml', 'i')
+            ->from(MovieList::class, 'ml')
+            ->leftJoin('ml.movieListItems', 'i')
+            ->where('ml.user = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('movie_list/index.html.twig', [
             'movie_lists' => $movieLists,
@@ -103,7 +110,7 @@ class MovieListController extends AbstractController
     }
 
     /**
-     * Toggle un item dans la liste "Favoris" de l'utilisateur
+     * 🔥 CORRIGÉ : Toggle un item dans la liste "Mon Panthéon" avec posterPath
      */
     #[Route('/favoris/toggle', name: 'app_movie_list_toggle_favorite', methods: ['POST'])]
     public function toggleFavorite(
@@ -123,7 +130,7 @@ class MovieListController extends AbstractController
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
-        // Trouver ou créer la liste "Favoris"
+        // Trouver ou créer la liste "Favoris" (Mon Panthéon)
         $favoritesList = $this->getOrCreateFavoritesList($user, $entityManager);
 
         // Vérifier si l'item existe déjà dans les favoris
@@ -134,7 +141,6 @@ class MovieListController extends AbstractController
         ]);
 
         if ($existingItem) {
-            // L'item existe déjà, on le supprime
             $entityManager->remove($existingItem);
             $entityManager->flush();
 
@@ -144,27 +150,53 @@ class MovieListController extends AbstractController
                 'message' => 'Retiré des favoris'
             ]);
         } else {
-            // L'item n'existe pas, on l'ajoute
-            $newItem = new MovieListItem();
-            $newItem->setMovieList($favoritesList);
-            $newItem->setTmdbId($tmdbId);
-            $newItem->setTmdbType($tmdbType);
-            $newItem->setAddedAt(new \DateTimeImmutable());
+            // 🔥 AJOUT : Récupérer le posterPath depuis TMDb avant de sauvegarder
+            try {
+                $response = $this->client->request('GET', self::API_BASE_URL . "/{$tmdbType}/{$tmdbId}", [
+                    'query' => [
+                        'api_key' => $this->apiKey,
+                        'language' => 'fr-FR',
+                    ],
+                    'timeout' => self::API_TIMEOUT,
+                ]);
 
-            $entityManager->persist($newItem);
-            $entityManager->flush();
+                $tmdbData = $response->toArray(false);
+                $posterPath = $tmdbData['poster_path'] ?? null;
 
-            return new JsonResponse([
-                'success' => true,
-                'isFavorite' => true,
-                'message' => 'Ajouté aux favoris'
-            ]);
+                $newItem = new MovieListItem();
+                $newItem->setMovieList($favoritesList);
+                $newItem->setTmdbId($tmdbId);
+                $newItem->setTmdbType($tmdbType);
+                $newItem->setAddedAt(new \DateTimeImmutable());
+
+                // 🔥 CORRECTION : Sauvegarder le posterPath pour la mosaïque
+                if ($posterPath) {
+                    $newItem->setPosterPath($posterPath);
+                }
+
+                $entityManager->persist($newItem);
+                $entityManager->flush();
+
+                return new JsonResponse([
+                    'success' => true,
+                    'isFavorite' => true,
+                    'message' => 'Ajouté aux favoris'
+                ]);
+            } catch (\Exception $e) {
+                $this->logger->error('Erreur toggle favoris', [
+                    'exception' => $e->getMessage(),
+                    'tmdb_id' => $tmdbId,
+                    'tmdb_type' => $tmdbType
+                ]);
+                return new JsonResponse(['error' => 'Erreur lors de l\'ajout'], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
     }
 
     /**
      * Ajoute un film/série à une liste (AJAX)
      * SÉCURISÉ : Vérifie l'ownership avant le chargement de l'entité
+     * MODIFIÉ : récupère le poster_path TMDb et le sauvegarde dans MovieListItem.posterPath
      */
     #[Route('/{id}/add/{tmdbType}/{tmdbId}', name: 'app_movie_list_add_item', requirements: ['id' => '\d+', 'tmdbId' => '\d+', 'tmdbType' => 'movie|tv'], methods: ['GET'])]
     public function addItem(
@@ -208,11 +240,27 @@ class MovieListController extends AbstractController
         }
 
         try {
+            // Récupère le poster_path depuis TMDb
+            $response = $this->client->request('GET', self::API_BASE_URL . "/{$tmdbType}/{$tmdbId}", [
+                'query' => [
+                    'api_key' => $this->apiKey,
+                    'language' => 'fr-FR',
+                ],
+                'timeout' => self::API_TIMEOUT,
+            ]);
+
+            $data = $response->toArray(false);
+            $posterPath = $data['poster_path'] ?? null;
+
             $item = new MovieListItem();
             $item->setMovieList($movieList);
             $item->setTmdbId($tmdbId);
             $item->setTmdbType($tmdbType);
             $item->setAddedAt(new \DateTimeImmutable());
+            if ($posterPath) {
+                // ⚠️ nécessite la colonne poster_path (nullable string) dans MovieListItem
+                $item->setPosterPath($posterPath);
+            }
 
             $entityManager->persist($item);
             $entityManager->flush();
@@ -221,7 +269,8 @@ class MovieListController extends AbstractController
                 'user_id' => $user->getId(),
                 'list_id' => $movieList->getId(),
                 'tmdb_id' => $tmdbId,
-                'tmdb_type' => $tmdbType
+                'tmdb_type' => $tmdbType,
+                'poster_path' => $posterPath
             ]);
 
             return new JsonResponse([
@@ -246,7 +295,7 @@ class MovieListController extends AbstractController
      * Vérifie dans quelles listes un item est présent
      * Renvoie les détails complets pour permettre le toggle
      */
-    #[Route('/check-item/{tmdbType}/{tmdbId}', name: 'app_movie_list_check_item', requirements: ['tmdbId' => '\d+', 'tmdbType' => 'movie|tv'], methods: ['GET'])]
+    #[Route('/check/{tmdbType}/{tmdbId}', name: 'app_movie_list_check_item', requirements: ['tmdbId' => '\d+', 'tmdbType' => 'movie|tv'], methods: ['GET'])]
     public function checkItem(
         string $tmdbType,
         int $tmdbId,
@@ -267,7 +316,7 @@ class MovieListController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        // Extrait les noms des listes
+        // Extrait les noms des listes + détails utiles
         $listNames = [];
         $itemsDetails = [];
 
@@ -275,7 +324,6 @@ class MovieListController extends AbstractController
             $listName = $item->getMovieList()->getName();
             $listNames[] = $listName;
 
-            // Ajoute les détails pour chaque liste
             $itemsDetails[] = [
                 'listName' => $listName,
                 'itemId' => $item->getId(),
@@ -318,17 +366,15 @@ class MovieListController extends AbstractController
             return $this->render('movie_list/show.html.twig', [
                 'movie_list' => $movieList,
                 'items' => [],
+                'items_with_data' => [],
             ]);
         }
 
-        // Groupe les items par type pour optimiser les requêtes
+        // OPTIMISATION : Groupe les requêtes par type pour faire des appels parallèles
         $movieIds = [];
         $tvIds = [];
-        $itemsMap = []; // Pour retrouver facilement les items originaux
 
         foreach ($items as $item) {
-            $itemsMap[$item->getTmdbType() . '_' . $item->getTmdbId()] = $item;
-
             if ($item->getTmdbType() === 'movie') {
                 $movieIds[] = $item->getTmdbId();
             } else {
@@ -336,43 +382,72 @@ class MovieListController extends AbstractController
             }
         }
 
-        // Récupère les détails en parallèle avec mise en cache
-        $itemsDetails = [];
+        // Récupère les données en parallèle
+        $movieData = !empty($movieIds) ? $this->fetchMultipleContent('movie', $movieIds) : [];
+        $tvData = !empty($tvIds) ? $this->fetchMultipleContent('tv', $tvIds) : [];
 
-        if (!empty($movieIds)) {
-            $movieDetails = $this->fetchMultipleContent('movie', $movieIds);
-            $itemsDetails = array_merge($itemsDetails, $movieDetails);
-        }
+        // Combine les items avec leurs données
+        $itemsWithData = [];
+        foreach ($items as $item) {
+            $key = $item->getTmdbType() . '_' . $item->getTmdbId();
+            $data = $item->getTmdbType() === 'movie' ? ($movieData[$key] ?? null) : ($tvData[$key] ?? null);
 
-        if (!empty($tvIds)) {
-            $tvDetails = $this->fetchMultipleContent('tv', $tvIds);
-            $itemsDetails = array_merge($itemsDetails, $tvDetails);
-        }
-
-        // Enrichit les détails avec les infos de la liste
-        $enrichedItems = [];
-        foreach ($itemsDetails as $key => $detail) {
-            if (isset($itemsMap[$key]) && $detail !== null) {
-                $detail['listItemId'] = $itemsMap[$key]->getId();
-                $detail['isSeries'] = ($itemsMap[$key]->getTmdbType() === 'tv');
-                $detail['addedAt'] = $itemsMap[$key]->getAddedAt();
-                $enrichedItems[] = $detail;
+            if ($data) {
+                $itemsWithData[] = [
+                    'entity' => $item,
+                    'data' => $data
+                ];
             }
         }
 
-        // Trie par date d'ajout (plus récent en premier)
-        usort($enrichedItems, function ($a, $b) {
-            return $b['addedAt'] <=> $a['addedAt'];
-        });
-
         return $this->render('movie_list/show.html.twig', [
             'movie_list' => $movieList,
-            'items' => $enrichedItems,
+            'items' => $items,
+            'items_with_data' => $itemsWithData,
         ]);
     }
 
     /**
-     * Supprime un élément d'une liste (Page avec redirection)
+     * Édite une liste
+     */
+    #[Route('/{id}/edit', name: 'app_movie_list_edit', requirements: ['id' => '\d+'], methods: ['GET', 'POST'])]
+    public function edit(Request $request, int $id, EntityManagerInterface $entityManager): Response
+    {
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+
+        $movieList = $this->movieListRepository->findOneBy([
+            'id' => $id,
+            'user' => $user
+        ]);
+
+        if (!$movieList) {
+            throw $this->createAccessDeniedException('Liste introuvable');
+        }
+
+        // Empêcher l'édition des listes système
+        if ($movieList->isSystem()) {
+            $this->addFlash('error', 'Impossible de modifier une liste système.');
+            return $this->redirectToRoute('app_movie_list_index');
+        }
+
+        $form = $this->createForm(MovieListType::class, $movieList);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'Liste modifiée avec succès !');
+            return $this->redirectToRoute('app_movie_list_show', ['id' => $movieList->getId()]);
+        }
+
+        return $this->render('movie_list/edit.html.twig', [
+            'movie_list' => $movieList,
+            'form' => $form,
+        ]);
+    }
+
+    /**
+     * Supprime un élément d'une liste (méthode classique avec redirection)
      * SÉCURISÉ : Vérifie l'ownership et le token CSRF
      */
     #[Route('/item/{id}/supprimer', name: 'app_movie_list_delete_item', requirements: ['id' => '\d+'], methods: ['POST'])]
@@ -434,7 +509,7 @@ class MovieListController extends AbstractController
      * Supprime un élément d'une liste (AJAX)
      * SÉCURISÉ : Vérifie l'ownership et le token CSRF
      */
-    #[Route('/item/{id}', name: 'app_movie_list_delete_item_ajax', requirements: ['id' => '\d+'], methods: ['POST'])]
+    #[Route('/item/{id}/ajax-supprimer', name: 'app_movie_list_delete_item_ajax', requirements: ['id' => '\d+'], methods: ['DELETE', 'POST'])]
     public function deleteItemAjax(
         Request $request,
         int $id,
@@ -563,20 +638,28 @@ class MovieListController extends AbstractController
     }
 
     /**
-     * Récupère ou crée la liste "Favoris" pour un utilisateur
+     * Récupère ou crée la liste "Mon Panthéon" pour un utilisateur
+     * Compatible avec les anciens comptes ayant "Favoris"
      * Méthode helper réutilisable
      */
     private function getOrCreateFavoritesList(\App\Entity\User $user, EntityManagerInterface $entityManager): MovieList
     {
+        // Cherche d'abord "Mon Panthéon" (nouveau nom)
         foreach ($user->getMovieLists() as $list) {
-            if ($list->getName() === 'Favoris') {
+            if ($list->getName() === 'Mon Panthéon' || $list->getName() === 'Favoris') {
+                // Si c'est encore "Favoris", on le renomme
+                if ($list->getName() === 'Favoris') {
+                    $list->setName('Mon Panthéon');
+                    $entityManager->persist($list);
+                    $entityManager->flush();
+                }
                 return $list;
             }
         }
 
         // La liste n'existe pas, on la crée
         $favoritesList = new MovieList();
-        $favoritesList->setName('Favoris');
+        $favoritesList->setName('Mon Panthéon');
         $favoritesList->setUser($user);
         $favoritesList->setCreatedAt(new \DateTimeImmutable());
         $favoritesList->setIsSystem(true); // Marquer comme liste système

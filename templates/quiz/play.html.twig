@@ -1,23 +1,32 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-	<h1>{{ quiz.title }}</h1>
-	<form method="POST" action="{{ path('quiz_submit', {id: quiz.id}) }}">
-		{% for question in questions %}
-			<div class="question-block">
-				<h3>Question
-					{{ loop.index }}
-					:
-					{{ question.text }}</h3>
-				{% for choice in question.choices %}
-					<label>
-						<input type="radio" name="question_{{ question.id }}" value="{{ choice }}">
-						{{ choice }}
-					</label><br>
-				{% endfor %}
-			</div>
-		{% endfor %}
-		<button type="submit">Valider mes réponses 🎯</button>
-	</form>
+<div class="container my-5">
+
+		<h1 class="title-show">{{ quiz.title }}</h1>
+
+		<form method="post" action="{{ path('quiz_submit', { id: quiz.id }) }}">
+			{# CSRF (optionnel si tu le gères côté contrôleur) #}
+			{# <input type="hidden" name="_token" value="{{ csrf_token('quiz_submit_' ~ quiz.id) }}"> #}
+
+				{% for question in questions %}
+					<div class="question-block"> <h3>Question
+						{{ loop.index }}
+						:
+						{{ question.text }}</h3>
+
+					{% for choice in question.choices %}
+						{% set inputId = 'q' ~ question.id ~ '_c' ~ loop.index %}
+						<div class="form-check">
+							<input class="form-check-input" type="radio" id="{{ inputId }}" name="question_{{ question.id }}" value="{{ choice }}" {% if loop.first %} required {% endif %}>
+							<label class="form-check-label" for="{{ inputId }}">{{ choice }}</label>
+						</div>
+					{% endfor %}
+				</div>
+			{% endfor %}
+
+			<button type="submit" class="btn btn-primary">Valider mes réponses 🎯</button>
+		</form>
+	</div>
 {% endblock %}
 

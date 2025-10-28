@@ -1,0 +1,26 @@
+{# templates/movie_list/edit.html.twig #}
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier
+	{{ movie_list.name }}
+{% endblock %}
+
+{% block body %}
+	<div class="container my-5">
+		<div class="row justify-content-center">
+			<div class="col-md-6">
+				<div class="login-form-container">
+					<h1 class="main-title text-center mb-4">Modifier la liste</h1>
+
+					{{ include('movie_list/_form.html.twig', {'button_label': 'Enregistrer les modifications'}) }}
+
+					<div class="text-center mt-4">
+						<a href="{{ path('app_movie_list_show', {'id': movie_list.id}) }}" class="btn btn-outline-secondary">
+							<i class="fas fa-arrow-left me-2"></i>Retour à la liste
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

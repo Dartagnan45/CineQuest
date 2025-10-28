@@ -14,6 +14,7 @@
 @import "components/favorite-star";
 @import "components/modal-modern";
 @import "components/navbar-dropdown";
+@import "components/_toasts-animations.scss";
 
 // =============================================================================
 // VARIABLES PERSONNALISÉES
@@ -905,6 +906,20 @@ p {
     .icon-logo {
         height: 100px;
         width: auto;
+        filter: drop-shadow(0 0 10px #00eaff);
+        animation: glowPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes glowPulse {
+        0% {
+            filter: drop-shadow(0 0 5px #00eaff) drop-shadow(0 0 10px #00eaff);
+        }
+        50% {
+            filter: drop-shadow(0 0 20px #00ffff) drop-shadow(0 0 40px #00ffff);
+        }
+        100% {
+            filter: drop-shadow(0 0 5px #00eaff) drop-shadow(0 0 10px #00eaff);
+        }
     }
 }
 
@@ -1416,26 +1431,21 @@ p {
     }
 }
 
+.navbar-brand {
+    display: flex;
+    align-items: center; /* centre horizontalement */
+    justify-content: center; /* centre verticalement si le parent a une hauteur fixe */
+}
+
 .logo-icon {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+    width: 70px;
 }
 
 .brand-text {
     font-size: 1.9rem;
-    vertical-align: text-top;
     margin-left: -1rem;
+    margin-top: 10px;
     font-weight: bold;
-}
-
-.navbar-brand {
-    .logo-icon {
-        // Ajustez la hauteur pour qu'elle corresponde à votre titre
-        height: 56px;
-        width: auto; // Garde les proportions
-        vertical-align: middle;
-    }
 }
 
 // =============================================================================
@@ -2562,11 +2572,11 @@ body.dark-mode .movie-card-list .card .card-body .text-muted {
 
 // =============================================================================
 // STYLES V5 - SIMPLE ET EFFICACE
-// Icônes TMDb/IMDb cliquables - Plateformes TMDb - Pas de flip
+// Icônes TMDb/IMDb cliquables - Plateformes TMDb
 // =============================================================================
 
 // =============================================================================
-// POSTER CONTAINER (sans flip)
+// POSTER CONTAINER
 // =============================================================================
 
 .poster-container {
@@ -3062,7 +3072,7 @@ a:hover .actor-name {
 
 // Metacritic - Affichage de la note dans un carré coloré
 .rating-logo-wrapper.metacritic-logo-bg {
-     background: transparent;
+    background: transparent;
     padding: 0.5rem;
     box-shadow: #000 0px 0px 10px;
 }
@@ -3140,5 +3150,229 @@ a:hover .actor-name {
 
     &:nth-child(4) {
         animation-delay: 0.4s;
+    }
+}
+
+/* assets/styles/movie_lists.css */
+
+/* ========================================
+   CARTES DE LISTES - MOSAÏQUE D'AFFICHES
+   ======================================== */
+
+.movie-list-card {
+    min-height: 300px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.movie-list-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+/* FOND EN MOSAÏQUE (Grille 3x2 = 6 affiches) */
+.movie-list-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0;
+    z-index: 1;
+}
+
+.movie-list-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    transition: opacity 0.3s ease;
+}
+
+.movie-list-card:hover .movie-list-bg img {
+    opacity: 0.8;
+}
+
+/* Superposition sombre pour lisibilité */
+.movie-list-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.4) 0%,
+        rgba(0, 0, 0, 0.85) 100%
+    );
+    z-index: 2;
+}
+
+/* Contenu (texte) par-dessus */
+.movie-list-content {
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-height: 300px;
+}
+
+.movie-list-content h5 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+.movie-list-content p {
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Badge compteur */
+.movie-list-content .badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Bouton "Voir la liste" */
+.movie-list-content .btn-outline-light {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.movie-list-content .btn-outline-light:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.7);
+    transform: translateY(-2px);
+}
+
+/* Thème sombre automatique */
+[data-bs-theme="dark"] .movie-list-overlay {
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.6) 0%,
+        rgba(0, 0, 0, 0.95) 100%
+    );
+}
+
+/* Liste vide (image par défaut) */
+.movie-list-bg img[src*="cine-room"] {
+    opacity: 0.3;
+    filter: grayscale(50%);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .movie-list-card {
+        min-height: 250px;
+    }
+
+    .movie-list-content {
+        min-height: 250px;
+        padding: 1.5rem !important;
+    }
+
+    .movie-list-content h5 {
+        font-size: 1.25rem;
+    }
+}
+
+/* Animation au chargement */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.movie-list-card {
+    animation: fadeInUp 0.5s ease;
+}
+
+/* Icônes spéciales selon le type de liste */
+.fa-trophy {
+    filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.5));
+}
+
+.fa-map {
+    filter: drop-shadow(0 2px 4px rgba(13, 202, 240, 0.5));
+}
+
+/* --- Badges “curation” CineQuest --- */
+.card-img-top-wrapper,
+.poster-container {
+    position: relative;
+}
+
+.wtw-badges {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.35rem; // un léger décalage pour ne pas coller le bord
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    padding: 0.35rem 0.5rem;
+    justify-content: center;
+
+    /* fond glassy lisible sur images claires ou sombres */
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.55) 0%,
+        rgba(0, 0, 0, 0.35) 60%,
+        rgba(0, 0, 0, 0) 100%
+    );
+}
+
+.wtw-badge {
+    font-size: 0.75rem;
+    line-height: 1;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    padding: 0.35rem 0.55rem;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    white-space: nowrap;
+}
+
+.wtw-badge .fa-trophy {
+    color: #ffd700;
+} /* or */
+.wtw-badge .fa-fire {
+    color: #ff6b3d;
+}
+.wtw-badge .fa-popcorn {
+    color: #ffcf66;
+} /* Font Awesome 6 a popcorn */
+.wtw-badge .fa-film {
+    color: #7dcfff;
+}
+
+@media (hover: hover) {
+    .wtw-badge:hover {
+        background: rgba(0, 0, 0, 0.8);
+        border-color: rgba(255, 255, 255, 0.25);
     }
 }

@@ -1,0 +1,375 @@
+// assets/styles/_toasts-animations.scss
+// VERSION CORRIGÉE avec tous les préfixes vendor
+
+// =============================================================================
+// TOASTS DE NOTIFICATION
+// =============================================================================
+
+.toast-container {
+    z-index: 9999 !important;
+}
+
+.toast {
+    // Préfixes vendor AVANT la propriété standard (ordre important pour le linter)
+    -webkit-backdrop-filter: blur(10px);
+    -moz-backdrop-filter: blur(10px);
+    -o-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    min-width: 300px;
+
+    .toast-body {
+        font-size: 0.95rem;
+        padding: 0.75rem 1rem;
+    }
+
+    // Animation d'entrée
+    @keyframes slideInFromRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    &.showing {
+        animation: slideInFromRight 0.3s ease-out;
+    }
+
+    // Animation de sortie
+    @keyframes slideOutToRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+
+    &.hide {
+        animation: slideOutToRight 0.3s ease-in;
+    }
+}
+
+// Couleurs personnalisées des toasts
+.toast {
+    &.bg-success {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+    }
+
+    &.bg-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+    }
+
+    &.bg-warning {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%) !important;
+    }
+
+    &.bg-danger {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%) !important;
+    }
+}
+
+// =============================================================================
+// ÉTOILE FAVORIS
+// =============================================================================
+
+.favorite-star {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    z-index: 10;
+
+    &:hover:not(:disabled) {
+        transform: scale(1.1);
+        background: rgba(0, 0, 0, 0.85);
+        border-color: rgba(255, 193, 7, 0.5);
+        color: rgba(255, 193, 7, 0.8);
+    }
+
+    &:active:not(:disabled) {
+        transform: scale(0.95);
+    }
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
+
+    // État favori (étoile jaune)
+    &.is-favorite {
+        color: #ffc107;
+        background: rgba(255, 193, 7, 0.15);
+        border-color: #ffc107;
+
+        i {
+            filter: drop-shadow(0 0 8px rgba(255, 193, 7, 0.6));
+        }
+
+        &:hover {
+            transform: scale(1.15);
+            background: rgba(255, 193, 7, 0.25);
+
+            i {
+                filter: drop-shadow(0 0 12px rgba(255, 193, 7, 0.8));
+            }
+        }
+    }
+}
+
+// Animation quand on ajoute/retire des favoris
+@keyframes favoriteBounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.3);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    75% {
+        transform: scale(1.25);
+    }
+}
+
+.favorite-star.animating {
+    animation: favoriteBounce 0.5s ease;
+}
+
+// =============================================================================
+// BADGE DES LISTES (BOOKMARK)
+// =============================================================================
+
+.in-lists-badge {
+    position: absolute;
+    bottom: 10px;
+    right: 65px; // À côté de l'étoile
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 1.2rem;
+    z-index: 10;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    pointer-events: none; // Le badge n'est pas cliquable
+
+    // Badge actif (quand il y a des listes)
+    &.has-lists {
+        opacity: 1;
+        color: #17a2b8;
+        border-color: rgba(23, 162, 184, 0.5);
+        background: rgba(23, 162, 184, 0.15);
+
+        i {
+            filter: drop-shadow(0 0 6px rgba(23, 162, 184, 0.5));
+        }
+    }
+}
+
+// Animation pulse pour le badge
+@keyframes badgePulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.8;
+    }
+}
+
+.in-lists-badge.has-lists.updating {
+    animation: badgePulse 0.6s ease;
+}
+
+// =============================================================================
+// DROPDOWN AJOUTER À UNE LISTE
+// =============================================================================
+
+.dropdown-menu {
+    -webkit-backdrop-filter: blur(10px);
+    -moz-backdrop-filter: blur(10px);
+    -o-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+
+    background: rgba(33, 37, 41, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+    .dropdown-item {
+        color: rgba(255, 255, 255, 0.9);
+        transition: all 0.2s ease;
+
+        &:hover:not(.disabled) {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding-left: 1.5rem;
+        }
+
+        &:active:not(.disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        &.disabled {
+            color: rgba(255, 255, 255, 0.4);
+            cursor: not-allowed;
+        }
+
+        i {
+            transition: transform 0.2s ease;
+        }
+
+        &:hover:not(.disabled) i {
+            transform: translateX(3px);
+        }
+    }
+}
+
+// Animation du bouton dropdown pendant le chargement
+.dropdown-toggle {
+    position: relative;
+
+    &.loading {
+        pointer-events: none;
+
+        &::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spinner 0.6s linear infinite;
+        }
+    }
+}
+
+@keyframes spinner {
+    to {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+// =============================================================================
+// TRANSITIONS GLOBALES
+// =============================================================================
+
+// Smooth transition pour tous les boutons
+button,
+.btn {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+    }
+}
+
+// Effet de loading sur les icônes
+.fa-spinner.fa-spin {
+    animation: fa-spin 1s infinite linear;
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+// =============================================================================
+// MODE SOMBRE (si ton site en a un)
+// =============================================================================
+
+body.dark-mode {
+    .toast {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .favorite-star,
+    .in-lists-badge {
+        background: rgba(0, 0, 0, 0.9);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .dropdown-menu {
+        background: rgba(20, 24, 28, 0.98);
+        border-color: rgba(255, 255, 255, 0.15);
+    }
+}
+
+// =============================================================================
+// RESPONSIVE
+// =============================================================================
+
+@media (max-width: 768px) {
+    .toast {
+        min-width: 250px;
+
+        .toast-body {
+            font-size: 0.9rem;
+            padding: 0.6rem 0.8rem;
+        }
+    }
+
+    .favorite-star,
+    .in-lists-badge {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+
+    .in-lists-badge {
+        right: 55px;
+    }
+}
+
+// =============================================================================
+// UTILITIES
+// =============================================================================
+
+// Classe pour désactiver temporairement les animations
+.no-animations {
+    * {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+// Classe pour forcer le focus visible (accessibilité)
+.focus-visible:focus {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}

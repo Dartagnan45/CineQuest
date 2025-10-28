@@ -8,6 +8,15 @@
 	{{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
 </div>
 
+{% if form.description is defined %}
+	<div class="form-floating mb-3">
+		<div class="name-label">
+			<label for="{{ form.description.vars.id }}">Description (optionnel)</label>
+		</div>
+		{{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 3}}) }}
+	</div>
+{% endif %}
+
 <button class="btn btn-success w-100">{{ button_label|default('Enregistrer') }}</button>
 
 {{ form_end(form) }}

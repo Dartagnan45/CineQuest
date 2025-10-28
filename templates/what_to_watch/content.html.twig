@@ -30,6 +30,9 @@
 								{% else %}
 									<img class="movie-poster img-fluid rounded" src="https://placehold.co/500x750/222/FFF?text=Pas+d'affiche" alt="Pas d'affiche disponible">
 								{% endif %}
+								{# ... dans .poster-container, sous les boutons favoris/signet #}
+								{% include 'partials/badges.html.twig' with { badges: badges } %}
+
 
 								{# Note TMDb #}
 								{% if item.vote_average is defined and item.vote_average > 0 %}
@@ -48,7 +51,7 @@
 											{% for listItem in list.movieListItems %}
 												{% if listItem.tmdbId == item.id and listItem.tmdbType == (isSeries ? 'tv' : 'movie') %}
 													{% set inLists = inLists|merge([list.name]) %}
-													{% if list.name == 'Favoris' %}
+													{% if list.name == 'Mon Panthéon' or list.name == 'Favoris' %}
 														{% set isFavorite = true %}
 													{% endif %}
 												{% endif %}
@@ -60,7 +63,7 @@
 										<i class="fas fa-bookmark"></i>
 									</button>
 
-									<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-tmdb-id="{{ item.id }}" data-tmdb-type="{{ isSeries ? 'tv' : 'movie' }}" data-controller="favorite" data-action="click->favorite#toggle" aria-label="Ajouter aux favoris" title="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}" type="button">
+									<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-tmdb-id="{{ item.id }}" data-tmdb-type="{{ isSeries ? 'tv' : 'movie' }}" data-controller="favorite" data-action="click->favorite#toggle" aria-label="Ajouter à Mon Panthéon" title="{{ isFavorite ? 'Retirer de Mon Panthéon' : 'Ajouter à Mon Panthéon' }}" type="button">
 										<i class="fas fa-star"></i>
 									</button>
 								{% endif %}
