@@ -1,5 +1,3 @@
-// assets/app.js
-
 // Import des styles et de Bootstrap
 import "./styles/app.scss";
 import "./bootstrap.js";
@@ -169,7 +167,7 @@ class InfiniteCarousel {
 }
 
 // =============================================================================
-// ÉVÉNEMENTS GLOBAUX
+// ÃVÃNEMENTS GLOBAUX
 // =============================================================================
 document.addEventListener("DOMContentLoaded", () => {
     // Bootstrap tooltips
@@ -182,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const mainCarousel = document.querySelector(".endless-carousel-container");
     if (mainCarousel) new InfiniteCarousel(mainCarousel);
 
-    // Thème clair/sombre avec son
+    // ThÃ¨me clair/sombre avec son
     const toggleBtn = document.getElementById("theme-toggle");
     const sound = document.getElementById("lamp-sound");
 
@@ -205,16 +203,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// Cacher l’ampoule au scroll
+// Cacher lâampoule au scroll
 document.addEventListener("scroll", () => {
     const toggleBtn = document.querySelector(".theme-toggle");
     if (!toggleBtn) return;
     toggleBtn.classList.toggle("hidden", window.scrollY > 100);
 });
 
-
 // =============================================================================
-// ÉVÉNEMENTS QUIZ
+// ÃVÃNEMENTS QUIZ
 // =============================================================================
 
 // Index Quiz
@@ -224,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     filterButtons.forEach((button) => {
         button.addEventListener("click", function () {
-            // Mise à jour des boutons actifs
+            // Mise Ã  jour des boutons actifs
             filterButtons.forEach((btn) => btn.classList.remove("active"));
             this.classList.add("active");
 
@@ -241,12 +238,3 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
-
-// Badges
-
-import 'bootstrap';
-document.addEventListener('DOMContentLoaded', () => {
-  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-  tooltipTriggerList.forEach(el => new window.bootstrap.Tooltip(el));
-});
-

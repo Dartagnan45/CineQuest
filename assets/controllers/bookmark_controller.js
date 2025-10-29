@@ -8,13 +8,13 @@ export default class extends Controller {
     };
 
     connect() {
-        // Sauvegarder la référence du controller pour y accéder depuis l'extérieur
+        // Sauvegarder la rÃ©fÃ©rence du controller pour y accÃ©der depuis l'extÃ©rieur
         this.element.bookmarkController = this;
 
-        // Initialiser l'état
+        // Initialiser l'Ã©tat
         this.refresh();
 
-        // Écouter les événements de mise à jour
+        // Ãcouter les Ã©vÃ©nements de mise Ã  jour
         document.addEventListener(
             "list-updated",
             this.handleListUpdate.bind(this)
@@ -50,13 +50,13 @@ export default class extends Controller {
             );
 
             if (!response.ok) {
-                throw new Error("Erreur lors de la récupération des listes");
+                throw new Error("Erreur lors de la rÃ©cupÃ©ration des listes");
             }
 
             const data = await response.json();
             this.updateBadge(data.lists);
         } catch (error) {
-            console.error("Erreur lors du rafraîchissement du badge:", error);
+            console.error("Erreur lors du rafraÃ®chissement du badge:", error);
         }
     }
 
@@ -68,9 +68,9 @@ export default class extends Controller {
             // Le contenu est dans au moins une liste
             button.classList.add("has-lists");
 
-            // Créer le contenu HTML du tooltip
+            // CrÃ©er le contenu HTML du tooltip
             const listNames = lists
-                .map((name) => `<span class="d-block">📋 ${name}</span>`)
+                .map((name) => `<span class="d-block">ð ${name}</span>`)
                 .join("");
             const tooltipContent = `<div class="text-start"><strong>Dans vos listes :</strong><br>${listNames}</div>`;
 
@@ -86,13 +86,13 @@ export default class extends Controller {
             button.setAttribute("title", "Pas encore dans vos listes");
         }
 
-        // Réinitialiser le tooltip Bootstrap pour prendre en compte les changements
+        // RÃ©initialiser le tooltip Bootstrap pour prendre en compte les changements
         const existingTooltip = bootstrap.Tooltip.getInstance(button);
         if (existingTooltip) {
             existingTooltip.dispose();
         }
 
-        // Recréer le tooltip
+        // RecrÃ©er le tooltip
         new bootstrap.Tooltip(button, {
             html: true,
             placement: "right",

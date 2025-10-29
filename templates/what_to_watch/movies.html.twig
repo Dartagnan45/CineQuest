@@ -17,13 +17,18 @@
                 : path(current_route)
             %}
 
-				<form method="get" action="{{ form_action }}" class="d-flex align-items-center gap-2">
+				<form method="get" action="{{ form_action }}" class="d-flex align-items-center gap-2" id="filterForm">
 					{% if searchQuery is defined and searchQuery is not empty %}
 						<input type="hidden" name="q" value="{{ searchQuery }}">
 					{% endif %}
 
+					{# Input caché combinant sortBy.order pour compatibilité backend #}
+					<input
+					type="hidden" name="sort" id="combinedSort">
+
+					{# Filtre type média (Films/Séries/Tous) #}
 					{% if filters.media_type_options is defined %}
-						<select name="media_type" class="form-select" aria-label="Filtrer par type" onchange="this.form.submit()">
+						<select name="media_type" class="form-select" aria-label="Filtrer par type">
 							{% for value, label in filters.media_type_options %}
 								<option value="{{ value }}" {{ value == (currentMediaType|default('all')) ? 'selected' }}>
 									{{ label }}
@@ -32,22 +37,183 @@
 						</select>
 					{% endif %}
 
-					<select name="sort" class="form-select" aria-label="Trier par" onchange="this.form.submit()">
-						{% set currentSortValue = (currentSort|default('popularity')) ~ '.' ~ (currentOrder|default('desc')) %}
-
+					{# SELECT 1 : Critère de tri #}
+					<select id="sortBySelect" class="form-select" aria-label="Trier par" style="min-width: 150px;">
 						{% for value, label in filters.sort_options %}
-							<option value="{{ value }}.desc" {{ (value ~ '.desc') == currentSortValue ? 'selected' }}>
+							<option value="{{ value }}" {{ value == (currentSort|default('popularity')) ? 'selected' }}>
 								{{ label }}
-								(Décroissant)
-							</option>
-							<option value="{{ value }}.asc" {{ (value ~ '.asc') == currentSortValue ? 'selected' }}>
-								{{ label }}
-								(Croissant)
 							</option>
 						{% endfor %}
 					</select>
-					<button type="submit" class="tri btn btn-light">Appliquer</button>
+
+					{# SELECT 2 : Ordre (icônes dynamiques) #}
+					<select
+						id="orderSelect" class="form-select" aria-label="Ordre" style="min-width: 220px;">{# Rempli dynamiquement par JavaScript #}
+					</select>
+
+					<button type="submit" class="tri btn btn-light">
+						<i class="fas fa-filter me-1"></i>Appliquer
+					</button>
 				</form>
+
+				{# 🎨 Script pour icônes dynamiques et combinaison des filtres #}
+				<script>
+					(function () {
+const sortBySelect = document.getElementById('sortBySelect');
+const orderSelect = document.getElementById('orderSelect');
+const combinedInput = document.getElementById('combinedSort');
+
+// État initial
+const currentSort = '{{ currentSort|default('popularity') }}';
+const currentOrder = '{{ currentOrder|default('desc') }}';
+
+// 🎨 Définition des icônes selon critère + ordre
+const iconMap = {
+vote_average: {
+desc: {
+icon: 'fa-arrow-up',
+color: 'text-success',
+text: '🟢 Meilleures notes'
+},
+asc: {
+icon: 'fa-arrow-down',
+color: 'text-danger',
+text: '🔴 Moins bonnes notes'
+}
+},
+popularity: {
+desc: {
+icon: 'fa-fire',
+color: 'text-warning',
+text: '🔥 Plus populaires'
+},
+asc: {
+icon: 'fa-snowflake',
+color: 'text-info',
+text: '❄️ Moins populaires'
+}
+},
+original_title: {
+desc: {
+icon: 'fa-sort-alpha-up',
+color: '',
+text: 'Z → A'
+},
+asc: {
+icon: 'fa-sort-alpha-down',
+color: '',
+text: 'A → Z'
+}
+},
+name: {
+desc: {
+icon: 'fa-sort-alpha-up',
+color: '',
+text: 'Z → A'
+},
+asc: {
+icon: 'fa-sort-alpha-down',
+color: '',
+text: 'A → Z'
+}
+},
+release_date: {
+desc: {
+icon: 'fa-hourglass-start',
+color: '',
+text: '⏳ Récents → Anciens'
+},
+asc: {
+icon: 'fa-hourglass-end',
+color: '',
+text: '⌛ Anciens → Récents'
+}
+},
+first_air_date: {
+desc: {
+icon: 'fa-hourglass-start',
+color: '',
+text: '⏳ Récents → Anciens'
+},
+asc: {
+icon: 'fa-hourglass-end',
+color: '',
+text: '⌛ Anciens → Récents'
+}
+},
+revenue: {
+desc: {
+icon: 'fa-dollar-sign',
+color: 'text-success',
+text: '💰 Revenus élevés'
+},
+asc: {
+icon: 'fa-coins',
+color: 'text-muted',
+text: '💸 Revenus faibles'
+}
+}
+};
+
+// Fonction : Met à jour les options du select "ordre" avec icônes
+function updateOrderOptions() {
+const sortBy = sortBySelect.value;
+const order = orderSelect.value || currentOrder;
+
+const icons = iconMap[sortBy] || {
+desc: {
+icon: 'fa-arrow-down',
+color: '',
+text: 'Décroissant'
+},
+asc: {
+icon: 'fa-arrow-up',
+color: '',
+text: 'Croissant'
+}
+};
+
+const descOption = icons.desc;
+const ascOption = icons.asc;
+
+orderSelect.innerHTML = `
+								<option value="desc" ${
+order === 'desc' ? 'selected' : ''
+}>
+									${
+descOption.text
+}
+								</option>
+								<option value="asc" ${
+order === 'asc' ? 'selected' : ''
+}>
+									${
+ascOption.text
+}
+								</option>
+							`;
+}
+
+// Fonction : Combine sortBy + order dans l'input caché
+function updateCombinedSort() {
+const sortBy = sortBySelect.value;
+const order = orderSelect.value;
+combinedInput.value = `${sortBy}.${order}`;
+}
+
+// Événements
+sortBySelect.addEventListener('change', function () {
+updateOrderOptions();
+updateCombinedSort();
+});
+
+orderSelect.addEventListener('change', updateCombinedSort);
+
+// Initialisation
+updateOrderOptions();
+updateCombinedSort();
+})();
+				</script>
 			{% endif %}
 		</div>
 
@@ -74,7 +240,7 @@
 										{% for listItem in list.movieListItems %}
 											{% if listItem.tmdbId == item.id and listItem.tmdbType == (item.isSeries ? 'tv' : 'movie') %}
 												{% set inLists = inLists|merge([list.name]) %}
-												{% if list.name == 'Favoris' %}
+												{% if list.name == 'Favoris' or list.name == 'Mon Panthéon' %}
 													{% set isFavorite = true %}
 												{% endif %}
 											{% endif %}
@@ -87,8 +253,8 @@
 									<i class="fas fa-bookmark"></i>
 								</button>
 
-								{# Étoile en haut à DROITE pour les favoris #}
-								<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-tmdb-id="{{ item.id }}" data-tmdb-type="{{ item.isSeries ? 'tv' : 'movie' }}" data-controller="favorite" data-action="click->favorite#toggle" aria-label="Ajouter aux favoris" title="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}" type="button">
+								{# Étoile en haut à DROITE pour les favoris - 🔥 CORRIGÉ #}
+								<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-controller="favorite" data-favorite-tmdb-id-value="{{ item.id }}" data-favorite-tmdb-type-value="{{ item.isSeries ? 'tv' : 'movie' }}" data-action="click->favorite#toggle" aria-label="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}" title="{{ isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris' }}" type="button">
 									<i class="fas fa-star"></i>
 								</button>
 							{% endif %}
@@ -197,12 +363,11 @@
 					</ul>
 				</nav>
 			{% endif %}
-
 		{% else %}
-			<div class="alert alert-info text-center" role="alert">
-				<i class="fas fa-info-circle me-2"></i>
-				Aucun résultat trouvé pour cette recherche.
+			<div class="alert alert-info" role="alert">
+				Aucun résultat trouvé.
 			</div>
 		{% endif %}
+
 	</div>
 {% endblock %}

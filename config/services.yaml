@@ -1,21 +1,48 @@
-# config/services.yaml
-parameters:
-    # Cette ligne est nécessaire pour lire la variable d'environnement
-    env(THE_MOVIE_DB_API_KEY): ""
+# =============================================================================
+# CONFIGURATION DES SERVICES - CINEQUEST / WHATTOWATCHV8
+# =============================================================================
 
 services:
-    # Cette ligne est la configuration par défaut pour tous vos services
+    # Configuration par défaut pour les services auto-wirés
     _defaults:
         autowire: true
         autoconfigure: true
 
-        # Cette section rend toutes les classes de votre dossier src/ disponibles
-        # comme services, ce qui permet l'injection automatique
+    # Enregistre automatiquement tous les services dans src/
     App\:
-        resource: "../src/"
+        resource: '../src/'
         exclude:
-            - "../src/Entity/"
-            - "../src/Kernel.php"
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
 
-    # La configuration manuelle pour le contrôleur a été supprimée.
-    # L'attribut #[Autowire] dans le constructeur du contrôleur s'en occupe maintenant.
+    # =============================================================================
+    # SERVICE DE GÉOLOCALISATION DES SÉANCES (MovieGlu)
+    # =============================================================================
+    App\Service\ShowtimesProvider:
+        arguments:
+            $client: '@http_client'
+            $cache: '@cache.app'
+            $logger: '@logger'
+            # Ces valeurs viennent du .env.local
+            $apiUrl: '%env(MOVIEGLU_API_URL)%'
+            $clientId: '%env(MOVIEGLU_CLIENT)%'
+            $apiKey: '%env(MOVIEGLU_API_KEY)%'
+            $territory: '%env(MOVIEGLU_TERRITORY)%'
+            $auth: '%env(MOVIEGLU_AUTH)%'
+
+    # =============================================================================
+    # AUTRES SERVICES
+    # =============================================================================
+    App\Service\MovieBadgeService: ~
+
+    # Controllers
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+# =============================================================================
+# NOTE IMPORTANTE :
+# Les alias cache.app et http_client sont automatiquement fournis par Symfony
+# Ne PAS les redéfinir ici car cela crée des références circulaires !
+# =============================================================================

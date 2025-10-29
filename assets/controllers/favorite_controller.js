@@ -5,6 +5,13 @@ import * as Bootstrap from "bootstrap";
 /**
  * Contrôleur pour gérer l'ajout/retrait des favoris (Mon Panthéon)
  * Gère la mise à jour en temps réel de l'icône étoile
+ *
+ * VERSION CORRIGÉE - 28 octobre 2025
+ * Corrections appliquées :
+ * - Encodage UTF-8 correct
+ * - Gestion des deux noms de liste (Favoris / Mon Panthéon)
+ * - Meilleure gestion des erreurs avec logs détaillés
+ * - Timeout pour les requêtes réseau
  */
 export default class extends Controller {
     static values = {
@@ -12,14 +19,22 @@ export default class extends Controller {
         tmdbType: String,
     };
 
+    // Timeout pour les requêtes (10 secondes)
+    static TIMEOUT = 10000;
+
     connect() {
-        console.log("Favorite controller connected", {
+        console.log("[FavoriteController] ✅ Connected", {
             tmdbId: this.tmdbIdValue,
             tmdbType: this.tmdbTypeValue,
+            timestamp: new Date().toISOString(),
         });
 
         // Vérifier l'état initial
         this.checkInitialState();
+    }
+
+    disconnect() {
+        console.log("[FavoriteController] ❌ Disconnected");
     }
 
     /**
@@ -27,28 +42,59 @@ export default class extends Controller {
      */
     async checkInitialState() {
         try {
+            console.log(
+                "[FavoriteController] 🔍 Vérification de l'état initial..."
+            );
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(
+                () => controller.abort(),
+                this.constructor.TIMEOUT
+            );
+
             const response = await fetch(
                 `/mes-listes/check/${this.tmdbTypeValue}/${this.tmdbIdValue}`,
                 {
                     headers: {
                         "X-Requested-With": "XMLHttpRequest",
                     },
+                    signal: controller.signal,
                 }
             );
 
-            if (response.ok) {
-                const data = await response.json();
-                const isFavorite = data.lists.includes("Mon Panthéon");
+            clearTimeout(timeoutId);
 
-                const button = this.element;
-                if (isFavorite) {
-                    button.classList.add("is-favorite");
-                } else {
-                    button.classList.remove("is-favorite");
-                }
+            if (!response.ok) {
+                console.error(
+                    "[FavoriteController] ❌ Erreur de vérification:",
+                    {
+                        status: response.status,
+                        statusText: response.statusText,
+                    }
+                );
+                return;
             }
+
+            const data = await response.json();
+            console.log("[FavoriteController] 📊 Données reçues:", data);
+
+            // ✅ CORRECTION MAJEURE : Vérifier les deux noms de liste possibles
+            // Anciens comptes peuvent avoir "Favoris", nouveaux ont "Mon Panthéon"
+            const isFavorite =
+                data.lists.includes("Mon Panthéon") ||
+                data.lists.includes("Favoris");
+
+            console.log("[FavoriteController] ⭐ Est un favori:", isFavorite);
+
+            this.updateButtonState(isFavorite);
         } catch (error) {
-            console.error("Erreur vérification état initial:", error);
+            if (error.name === "AbortError") {
+                console.error(
+                    "[FavoriteController] ⏱️ Timeout lors de la vérification"
+                );
+            } else {
+                console.error("[FavoriteController] ❌ Erreur:", error);
+            }
         }
     }
 
@@ -58,8 +104,17 @@ export default class extends Controller {
     async toggle(event) {
         event.preventDefault();
 
+        console.log("[FavoriteController] 🔄 Toggle demandé");
+
         const button = this.element;
         const icon = button.querySelector("i");
+
+        if (!icon) {
+            console.error(
+                "[FavoriteController] ❌ Icône introuvable dans le bouton"
+            );
+            return;
+        }
 
         // Désactive le bouton pendant la requête
         button.disabled = true;
@@ -68,7 +123,17 @@ export default class extends Controller {
         const originalIconClass = icon.className;
         icon.className = "fas fa-spinner fa-spin";
 
+        const startTime = performance.now();
+
         try {
+            console.log("[FavoriteController] 📤 Envoi de la requête...");
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(
+                () => controller.abort(),
+                this.constructor.TIMEOUT
+            );
+
             const response = await fetch("/mes-listes/favoris/toggle", {
                 method: "POST",
                 headers: {
@@ -79,13 +144,42 @@ export default class extends Controller {
                     tmdbId: this.tmdbIdValue,
                     tmdbType: this.tmdbTypeValue,
                 }),
+                signal: controller.signal,
+            });
+
+            clearTimeout(timeoutId);
+
+            const endTime = performance.now();
+            const duration = (endTime - startTime).toFixed(0);
+
+            console.log("[FavoriteController] 📥 Réponse reçue", {
+                status: response.status,
+                statusText: response.statusText,
+                duration: `${duration}ms`,
             });
 
             if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
+                // Tenter de lire le corps de la réponse pour plus d'infos
+                let errorDetails = "";
+                try {
+                    errorDetails = await response.text();
+                } catch (e) {
+                    errorDetails = "Impossible de lire le corps de l'erreur";
+                }
+
+                console.error("[FavoriteController] ❌ Erreur HTTP:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    details: errorDetails,
+                });
+
+                throw new Error(
+                    `Erreur HTTP ${response.status}: ${response.statusText}`
+                );
             }
 
             const data = await response.json();
+            console.log("[FavoriteController] ✅ Données de réponse:", data);
 
             if (data.success) {
                 // Restaure l'icône
@@ -93,8 +187,14 @@ export default class extends Controller {
 
                 // Met à jour l'apparence avec animation
                 if (data.isFavorite) {
+                    console.log("[FavoriteController] ⭐ Ajouté aux favoris");
+
                     button.classList.add("is-favorite");
                     button.setAttribute("title", "Retirer de Mon Panthéon");
+                    button.setAttribute(
+                        "aria-label",
+                        "Retirer de Mon Panthéon"
+                    );
 
                     // Animation étoile qui grossit
                     button.style.transform = "scale(1.3)";
@@ -104,8 +204,11 @@ export default class extends Controller {
 
                     this.showToast("⭐ Ajouté à Mon Panthéon", "success");
                 } else {
+                    console.log("[FavoriteController] ➖ Retiré des favoris");
+
                     button.classList.remove("is-favorite");
                     button.setAttribute("title", "Ajouter à Mon Panthéon");
+                    button.setAttribute("aria-label", "Ajouter à Mon Panthéon");
 
                     // Animation étoile qui rétrécit
                     button.style.transform = "scale(0.8)";
@@ -117,66 +220,111 @@ export default class extends Controller {
                 }
 
                 // Émet un événement pour que d'autres contrôleurs se mettent à jour
-                document.dispatchEvent(
-                    new CustomEvent("list-updated", {
-                        detail: {
-                            tmdbId: this.tmdbIdValue,
-                            tmdbType: this.tmdbTypeValue,
-                            listName: "Mon Panthéon",
-                            action: data.isFavorite ? "added" : "removed",
-                        },
-                    })
+                this.dispatchListUpdatedEvent(
+                    data.isFavorite ? "added" : "removed"
                 );
             } else {
-                throw new Error(data.message || "Erreur inconnue");
+                console.error(
+                    "[FavoriteController] ❌ Échec de l'opération:",
+                    data.message
+                );
+                throw new Error(data.message || "L'opération a échoué");
             }
         } catch (error) {
-            console.error("Erreur:", error);
-            icon.className = originalIconClass;
-            this.showToast(
-                "❌ Une erreur est survenue. Veuillez réessayer.",
-                "danger"
+            console.error(
+                "[FavoriteController] ❌ Erreur lors du toggle:",
+                error
             );
+
+            // Restaure l'icône en cas d'erreur
+            icon.className = originalIconClass;
+
+            // Affiche un message d'erreur approprié
+            if (error.name === "AbortError") {
+                this.showToast(
+                    "⏱️ La requête a expiré. Vérifiez votre connexion.",
+                    "warning"
+                );
+            } else if (
+                error instanceof TypeError &&
+                error.message.includes("fetch")
+            ) {
+                this.showToast(
+                    "🌐 Problème de connexion. Vérifiez votre réseau.",
+                    "danger"
+                );
+            } else {
+                this.showToast(
+                    "❌ Une erreur est survenue. Réessayez dans quelques instants.",
+                    "danger"
+                );
+            }
         } finally {
+            // Réactive toujours le bouton
             button.disabled = false;
         }
+    }
+
+    /**
+     * Met à jour l'état visuel du bouton
+     */
+    updateButtonState(isFavorite) {
+        const button = this.element;
+
+        if (isFavorite) {
+            button.classList.add("is-favorite");
+            button.setAttribute("title", "Retirer de Mon Panthéon");
+            button.setAttribute("aria-label", "Retirer de Mon Panthéon");
+        } else {
+            button.classList.remove("is-favorite");
+            button.setAttribute("title", "Ajouter à Mon Panthéon");
+            button.setAttribute("aria-label", "Ajouter à Mon Panthéon");
+        }
+    }
+
+    /**
+     * Émet un événement de mise à jour de liste
+     */
+    dispatchListUpdatedEvent(action) {
+        console.log(
+            "[FavoriteController] 📢 Émission de l'événement list-updated:",
+            action
+        );
+
+        const event = new CustomEvent("list-updated", {
+            detail: {
+                tmdbId: this.tmdbIdValue,
+                tmdbType: this.tmdbTypeValue,
+                listName: "Mon Panthéon",
+                action: action,
+            },
+            bubbles: true,
+        });
+
+        document.dispatchEvent(event);
     }
 
     /**
      * Affiche un toast Bootstrap
      */
     showToast(message, type = "success") {
+        console.log("[FavoriteController] 🍞 Affichage du toast:", {
+            message,
+            type,
+        });
+
         let toastContainer = document.querySelector(".toast-container");
+
         if (!toastContainer) {
             toastContainer = document.createElement("div");
             toastContainer.className =
                 "toast-container position-fixed top-0 end-0 p-3";
             toastContainer.style.zIndex = "9999";
             document.body.appendChild(toastContainer);
+            console.log("[FavoriteController] 📦 Container de toast créé");
         }
 
-        let bgClass,
-            textClass = "text-white",
-            iconClass = "btn-close-white";
-
-        switch (type) {
-            case "success":
-                bgClass = "bg-success";
-                break;
-            case "info":
-                bgClass = "bg-info";
-                break;
-            case "warning":
-                bgClass = "bg-warning";
-                textClass = "text-dark";
-                iconClass = "";
-                break;
-            case "danger":
-                bgClass = "bg-danger";
-                break;
-            default:
-                bgClass = "bg-primary";
-        }
+        const { bgClass, textClass, iconClass } = this.getToastClasses(type);
 
         const toast = document.createElement("div");
         toast.className = `toast align-items-center ${textClass} ${bgClass} border-0`;
@@ -187,7 +335,8 @@ export default class extends Controller {
         toast.innerHTML = `
             <div class="d-flex">
                 <div class="toast-body fw-bold">${message}</div>
-                <button type="button" class="btn-close ${iconClass} me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                <button type="button" class="btn-close ${iconClass} me-2 m-auto"
+                        data-bs-dismiss="toast" aria-label="Fermer"></button>
             </div>
         `;
 
@@ -197,10 +346,42 @@ export default class extends Controller {
             autohide: true,
             delay: 3000,
         });
+
         bsToast.show();
 
+        // Supprime le toast après disparition
         toast.addEventListener("hidden.bs.toast", () => {
             toast.remove();
         });
+    }
+
+    /**
+     * Retourne les classes CSS pour un type de toast donné
+     */
+    getToastClasses(type) {
+        const classes = {
+            success: {
+                bgClass: "bg-success",
+                textClass: "text-white",
+                iconClass: "btn-close-white",
+            },
+            info: {
+                bgClass: "bg-info",
+                textClass: "text-white",
+                iconClass: "btn-close-white",
+            },
+            warning: {
+                bgClass: "bg-warning",
+                textClass: "text-dark",
+                iconClass: "",
+            },
+            danger: {
+                bgClass: "bg-danger",
+                textClass: "text-white",
+                iconClass: "btn-close-white",
+            },
+        };
+
+        return classes[type] || classes.success;
     }
 }

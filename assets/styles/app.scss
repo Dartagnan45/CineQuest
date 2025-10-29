@@ -187,12 +187,20 @@ main {
 .title-connect,
 .main-title,
 .title-show,
-.director {
+.director,
+h2,
+h3,
+h4 {
     @extend %title-with-background;
     background: $orange-animated-gradient;
     background-size: 300% 300% !important;
     animation: gradient-animation 15s ease-in-out infinite !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+h5,
+h6 {
+    text-decoration: underline $primary-color;
 }
 
 // Titres Display avec dégradé ORANGE (clip sur texte)
@@ -216,9 +224,13 @@ main {
 h3,
 h4,
 h5,
-h6 {
+h6,
+.year {
     @extend %title-with-clip;
     padding-bottom: 20px;
+    color: $title-color !important;
+    vertical-align: center;
+    text-align: center;
 }
 
 // Ajustements spécifiques

@@ -1,63 +1,99 @@
 // =============================================================================
-// VARIABLES SCSS - WhatToWatch
+// VARIABLES SCSS - CinéQuest / WhatToWatch
+// Version : 2.0 (Optimisée et corrigée)
 // =============================================================================
 
-// Couleurs de base
-$color-jaffa: #F47A31; // Orange principal
-$color-turquoise: #37D4CF; // Turquoise
-$color-gray-dark: #2E3131; // Gris foncé
-$color-white: #FFFFFF;
-$color-black: #000000;
-$primary: #37d4cf; // Votre couleur turquoise
+// =============================================================================
+// COULEURS DE BASE
+// =============================================================================
 
-// Couleurs principales du projet
+$color-jaffa: #f47a31; // Orange principal
+$color-turquoise: #37d4cf; // Turquoise
+$color-turquoise-light: #8ef7f2; // Turquoise clair (pour variations)
+$color-gray-dark: #2e3131; // Gris foncé
+$color-white: #ffffff;
+$color-black: #000000;
+
+// =============================================================================
+// COULEURS PRINCIPALES DU PROJET
+// =============================================================================
+
 $primary-color: $color-jaffa;
 $secondary-color: $color-turquoise;
+$secondary-color-light: $color-turquoise-light; // Ajout pour clarté
 $primary-background-color: $color-gray-dark;
 $primary-text-color: $color-white;
 
-// Couleurs des titres
+// =============================================================================
+// COULEURS SÉMANTIQUES
+// =============================================================================
+
+$success-color: #28a745;
+$danger-color: #dc3545;
+$warning-color: #ffc107;
+$info-color: #17a2b8;
+
+// =============================================================================
+// COULEURS DES TITRES ET LIENS
+// =============================================================================
+
 $title-color: $color-turquoise;
-
-// Couleurs des liens - Utilisation de mix() au lieu de lighten()
 $link-color: $color-turquoise;
-$link-hover-color: mix(white, $color-jaffa, 35%); // Équivalent à lighten($color-jaffa, 15%)
+$link-hover-color: mix(white, $color-jaffa, 35%);
 
-// Typographie
-$font-title: 'Righteous', sans-serif;
-$font-body: 'Vollkorn', serif;
-$font-title-h1: 'Luckiest Guy', cursive;
+// =============================================================================
+// TYPOGRAPHIE
+// =============================================================================
 
+$font-title: "Righteous", sans-serif;
+$font-body: "Vollkorn", serif;
+$font-title-h1: "Luckiest Guy", cursive;
 
 // Tailles de police
 $font-size-base: 1rem;
 $font-size-large: 1.25rem;
 $font-size-small: 0.875rem;
 
-// Espacements
+// =============================================================================
+// ESPACEMENTS
+// =============================================================================
+
 $spacing-xs: 0.5rem;
 $spacing-sm: 1rem;
 $spacing-md: 1.5rem;
 $spacing-lg: 2rem;
 $spacing-xl: 3rem;
 
-// Border radius
+// =============================================================================
+// BORDER RADIUS
+// =============================================================================
+
 $border-radius-sm: 5px;
 $border-radius-md: 10px;
 $border-radius-lg: 15px;
 $border-radius-full: 50%;
 
-// Ombres
+// =============================================================================
+// OMBRES
+// =============================================================================
+
 $shadow-sm: 0 2px 5px rgba($color-black, 0.1);
 $shadow-md: 0 4px 12px rgba($color-black, 0.2);
 $shadow-lg: 0 10px 40px rgba($color-black, 0.3);
 
-// Transitions
+// =============================================================================
+// TRANSITIONS
+// =============================================================================
+
 $transition-fast: 0.2s ease-in-out;
 $transition-normal: 0.3s ease-in-out;
 $transition-slow: 0.5s ease-in-out;
+$transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
-// Breakpoints (optionnel, Bootstrap en a déjà)
+// =============================================================================
+// BREAKPOINTS (pour compléter Bootstrap)
+// =============================================================================
+
 $breakpoint-xs: 0;
 $breakpoint-sm: 576px;
 $breakpoint-md: 768px;
@@ -65,34 +101,86 @@ $breakpoint-lg: 992px;
 $breakpoint-xl: 1200px;
 $breakpoint-xxl: 1400px;
 
-// Z-index layers
+// Breakpoints personnalisés
+$breakpoint-mobile: 576px;
+$breakpoint-tablet: 768px;
+$breakpoint-desktop: 992px;
+$breakpoint-large: 1200px;
+
+// =============================================================================
+// Z-INDEX (hiérarchie claire)
+// =============================================================================
+
 $z-index-base: 1;
-$z-index-dropdown: 1000;
+$z-index-dropdown: 1050;
 $z-index-sticky: 1020;
 $z-index-fixed: 1030;
+$z-index-navbar: 1040;
 $z-index-modal-backdrop: 1040;
-$z-index-modal: 1050;
+$z-index-modal: 1055;
 $z-index-popover: 1060;
 $z-index-tooltip: 1070;
+$z-index-film-bars: 9999;
 
-// Cartes de films
-$card-min-width: 320px;
+// =============================================================================
+// COMPOSANTS - CARTES DE FILMS
+// =============================================================================
+
+$card-min-width: 250px;
 $card-max-width: 400px;
-$card-image-height: 480px;
+$card-image-height: 375px;
 $card-border-radius: $border-radius-md;
 $card-shadow: $shadow-md;
 $card-shadow-hover: $shadow-lg;
+$card-spacing: 1rem;
 
-// Rating badge
+// =============================================================================
+// COMPOSANTS - RATING BADGE
+// =============================================================================
+
 $rating-size: 60px;
 $rating-border-width: 3px;
 $rating-background: $color-turquoise;
 
-// Navbar
+// =============================================================================
+// COMPOSANTS - NAVBAR
+// =============================================================================
+
 $navbar-height: 70px;
 $navbar-background: $primary-color;
 $navbar-text-color: $color-white;
 
-// Hero section
+// =============================================================================
+// COMPOSANTS - HERO SECTION
+// =============================================================================
+
 $hero-overlay-opacity: 0.6;
 $hero-min-height: 100vh;
+
+// =============================================================================
+// DÉGRADÉS ANIMÉS
+// =============================================================================
+
+$orange-animated-gradient: linear-gradient(
+    135deg,
+    #f47a31,
+    #f34e0d,
+    #ffa827,
+    #f47a31
+);
+
+$turquoise-animated-gradient: linear-gradient(
+    135deg,
+    #37d4cf,
+    #72b1af,
+    #c0f1ee,
+    #37d4cf
+);
+
+// =============================================================================
+// NOTES
+// =============================================================================
+// Ce fichier contient TOUTES les variables du projet.
+// Ne pas dupliquer ces variables dans d'autres fichiers SCSS.
+// Utiliser @use "variables" as *; pour importer ces variables.
+// =============================================================================

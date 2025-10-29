@@ -3,8 +3,8 @@ import { Controller } from "@hotwired/stimulus";
 import * as Bootstrap from "bootstrap";
 
 /**
- * Contrôleur pour gérer l'ajout de films/séries aux listes via le dropdown "+"
- * Empêche l'affichage de la page JSON et gère les toasts
+ * ContrÃ´leur pour gÃ©rer l'ajout de films/sÃ©ries aux listes via le dropdown "+"
+ * EmpÃªche l'affichage de la page JSON et gÃ¨re les toasts
  */
 export default class extends Controller {
     static values = {
@@ -18,7 +18,7 @@ export default class extends Controller {
             tmdbType: this.tmdbTypeValue,
         });
 
-        // Écoute les événements de mise à jour des listes
+        // Ãcoute les Ã©vÃ©nements de mise Ã  jour des listes
         document.addEventListener(
             "list-updated",
             this.handleListUpdate.bind(this)
@@ -33,11 +33,11 @@ export default class extends Controller {
     }
 
     /**
-     * Gère l'ajout d'un contenu à une liste
-     * IMPORTANT : Empêche la navigation vers la page JSON
+     * GÃ¨re l'ajout d'un contenu Ã  une liste
+     * IMPORTANT : EmpÃªche la navigation vers la page JSON
      */
     async add(event) {
-        // CRITIQUE : Empêche le comportement par défaut du lien
+        // CRITIQUE : EmpÃªche le comportement par dÃ©faut du lien
         event.preventDefault();
         event.stopPropagation();
 
@@ -57,7 +57,7 @@ export default class extends Controller {
             icon.className = "fas fa-spinner fa-spin me-2";
         }
 
-        // Désactive le lien pendant la requête
+        // DÃ©sactive le lien pendant la requÃªte
         link.style.pointerEvents = "none";
 
         try {
@@ -76,16 +76,16 @@ export default class extends Controller {
             const data = await response.json();
 
             if (data.message) {
-                // Détermine si c'est un succès ou une erreur
+                // DÃ©termine si c'est un succÃ¨s ou une erreur
                 const isSuccess =
                     response.status === 200 || response.status === 201;
-                const isConflict = response.status === 409; // Déjà dans la liste
+                const isConflict = response.status === 409; // DÃ©jÃ  dans la liste
 
                 if (isSuccess) {
-                    // Succès
-                    this.showToast(`✅ ${data.message}`, "success");
+                    // SuccÃ¨s
+                    this.showToast(`â ${data.message}`, "success");
 
-                    // Dispatch un événement pour mettre à jour les badges
+                    // Dispatch un Ã©vÃ©nement pour mettre Ã  jour les badges
                     document.dispatchEvent(
                         new CustomEvent("list-updated", {
                             detail: {
@@ -97,26 +97,26 @@ export default class extends Controller {
                         })
                     );
 
-                    // Ferme le dropdown après ajout réussi
+                    // Ferme le dropdown aprÃ¨s ajout rÃ©ussi
                     this.closeDropdown();
                 } else if (isConflict) {
-                    // Déjà dans la liste
-                    this.showToast(`ℹ️ ${data.message}`, "info");
+                    // DÃ©jÃ  dans la liste
+                    this.showToast(`â¹ï¸ ${data.message}`, "info");
                 } else {
                     // Autre erreur (limite atteinte, etc.)
-                    this.showToast(`⚠️ ${data.message}`, "warning");
+                    this.showToast(`â ï¸ ${data.message}`, "warning");
                 }
             } else {
-                throw new Error("Réponse JSON invalide");
+                throw new Error("RÃ©ponse JSON invalide");
             }
         } catch (error) {
-            console.error("Erreur lors de l'ajout à la liste:", error);
+            console.error("Erreur lors de l'ajout Ã  la liste:", error);
             this.showToast(
-                "❌ Erreur lors de l'ajout à la liste. Veuillez réessayer.",
+                "â Erreur lors de l'ajout Ã  la liste. Veuillez rÃ©essayer.",
                 "danger"
             );
         } finally {
-            // Restaure l'icône et réactive le lien
+            // Restaure l'icÃ´ne et rÃ©active le lien
             if (icon) {
                 icon.className = originalIcon;
             }
@@ -140,20 +140,20 @@ export default class extends Controller {
     }
 
     /**
-     * Gère les événements de mise à jour des listes
+     * GÃ¨re les Ã©vÃ©nements de mise Ã  jour des listes
      */
     handleListUpdate(event) {
         if (
             event.detail.tmdbId === this.tmdbIdValue &&
             event.detail.tmdbType === this.tmdbTypeValue
         ) {
-            // Rafraîchit le badge bookmark
+            // RafraÃ®chit le badge bookmark
             this.updateBookmarkBadge();
         }
     }
 
     /**
-     * Met à jour le badge bookmark via son contrôleur
+     * Met Ã  jour le badge bookmark via son contrÃ´leur
      */
     async updateBookmarkBadge() {
         const bookmarkBadge = document.querySelector(
@@ -169,7 +169,7 @@ export default class extends Controller {
      * Affiche un toast de notification Bootstrap
      */
     showToast(message, type = "success") {
-        // Crée le container de toasts s'il n'existe pas
+        // CrÃ©e le container de toasts s'il n'existe pas
         let toastContainer = document.querySelector(".toast-container");
         if (!toastContainer) {
             toastContainer = document.createElement("div");
@@ -179,7 +179,7 @@ export default class extends Controller {
             document.body.appendChild(toastContainer);
         }
 
-        // Détermine la classe Bootstrap selon le type
+        // DÃ©termine la classe Bootstrap selon le type
         let bgClass;
         let textClass = "text-white";
         let iconClass = "btn-close-white";
@@ -203,7 +203,7 @@ export default class extends Controller {
                 bgClass = "bg-primary";
         }
 
-        // Crée le toast
+        // CrÃ©e le toast
         const toastId = `toast-${Date.now()}`;
         const toast = document.createElement("div");
         toast.className = `toast align-items-center ${textClass} ${bgClass} border-0`;
@@ -228,7 +228,7 @@ export default class extends Controller {
         });
         bsToast.show();
 
-        // Supprime le toast après disparition
+        // Supprime le toast aprÃ¨s disparition
         toast.addEventListener("hidden.bs.toast", () => {
             toast.remove();
         });

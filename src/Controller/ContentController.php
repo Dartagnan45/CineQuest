@@ -12,15 +12,6 @@ use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-/**
- * ContentController
- * v7 — Badges + OMDb (IMDb/RT/Metacritic) + Plateformes TMDb + Person details
- *
- * - Intègre MovieBadgeService (badges Chef-d’œuvre / Culte / Classiques 80/90 / Culte par genre)
- * - Conserve le caching TMDb/OMDb/Person
- * - Expose links (TMDb/IMDb/Rotten/Metacritic) + watchProviders (FR)
- * - Compatible avec content.html.twig (notes + plateformes + badges) et person.html.twig
- */
 class ContentController extends AbstractController
 {
     private const TMDB_BASE = 'https://api.themoviedb.org/3';
@@ -39,10 +30,6 @@ class ContentController extends AbstractController
         private ?string $omdbApiKey = null
     ) {}
 
-    /* ===========================
-     * ROUTES CONTENU (FILM / TV)
-     * =========================== */
-
     #[Route('/movie/{id}', name: 'movie_content', requirements: ['id' => '\d+'])]
     public function movieDetail(int $id): Response
     {
@@ -55,41 +42,97 @@ class ContentController extends AbstractController
         return $this->renderContentDetail($id, true);
     }
 
-    /**
-     * Récupère et rend la page de détail (film/série)
-     */
     private function renderContentDetail(int $id, bool $isSeries): Response
     {
         $type = $isSeries ? 'tv' : 'movie';
 
         try {
-            /* 1) TMDb : item + extras (videos, credits, recommendations, similar, external_ids, watch/providers) */
+            // 🔍 LOG: Début du processus
+            $this->logger->info('🎬 Début renderContentDetail', [
+                'id' => $id,
+                'type' => $type,
+                'isSeries' => $isSeries
+            ]);
+
+            /* 1) TMDb : item + extras */
             $item = $this->cache->get("detail_{$type}_{$id}", function (ItemInterface $ci) use ($type, $id) {
                 $ci->expiresAfter(6 * 3600);
-                $resp = $this->client->request('GET', sprintf('%s/%s/%d', self::TMDB_BASE, $type, $id), [
+
+                $url = sprintf('%s/%s/%d', self::TMDB_BASE, $type, $id);
+
+                // 🔍 LOG: URL et paramètres
+                $this->logger->info('📡 Appel API TMDb', [
+                    'url' => $url,
+                    'api_key_present' => !empty($this->tmdbApiKey),
+                    'api_key_length' => strlen($this->tmdbApiKey)
+                ]);
+
+                $resp = $this->client->request('GET', $url, [
                     'query' => [
                         'api_key'            => $this->tmdbApiKey,
                         'language'           => self::LANGUAGE,
-                        'append_to_response' => 'videos,credits,recommendations,similar,external_ids,watch/providers'
+                        'append_to_response' => 'videos,credits,recommendations,similar,external_ids,watch_providers'
                     ],
                     'timeout' => 10
                 ]);
-                return $resp->toArray();
+
+                $statusCode = $resp->getStatusCode();
+
+                // 🔍 LOG: Réponse HTTP
+                $this->logger->info('✅ Réponse TMDb', [
+                    'status' => $statusCode,
+                    'headers' => $resp->getHeaders(false)
+                ]);
+
+                if ($statusCode !== 200) {
+                    throw new \RuntimeException("TMDb returned HTTP {$statusCode}");
+                }
+
+                $data = $resp->toArray();
+
+                // 🔍 LOG: Structure des données
+                $this->logger->info('📦 Données reçues', [
+                    'has_watch_providers' => isset($data['watch_providers']),
+                    'keys' => array_keys($data)
+                ]);
+
+                return $data;
             });
 
-            /* 2) Plateformes de visionnage (FR) */
+            // 🔍 LOG: Après récupération
+            $this->logger->info('✅ Item récupéré', [
+                'title' => $item['title'] ?? $item['name'] ?? 'N/A'
+            ]);
+
+            /* 2) Plateformes */
             $watchProviders = $this->extractWatchProviders($item);
 
-            /* 3) OMDb : IMDb + Rotten Tomatoes + Metacritic */
+            $this->logger->info('📺 Watch Providers', [
+                'flatrate_count' => count($watchProviders['flatrate']),
+                'rent_count' => count($watchProviders['rent']),
+                'buy_count' => count($watchProviders['buy'])
+            ]);
+
+            /* 3) OMDb */
             $omdb = $this->fetchOmdbData($item);
 
-            /* 4) Liens externes (TMDb / IMDb / Rotten / Metacritic) */
+            /* 4) Liens externes */
             $links = $this->generateLinks($item, $type, $id);
 
-            /* 5) Badges (algorithme puissant) */
+            /* 5) Badges */
             $badges = $this->movieBadgeService->decideBadges($item, $omdb ?? null, $isSeries);
 
-            /* 6) Rendu */
+            /* 6) Détection cinéma */
+            $isNowPlaying = $this->isCurrentlyInTheaters($item, $isSeries);
+
+            // 🔍 LOG: Avant rendu
+            $this->logger->info('🎨 Préparation rendu template', [
+                'template' => 'what_to_watch/content.html.twig',
+                'has_omdb' => $omdb !== null,
+                'badge_count' => count($badges)
+            ]);
+
+            /* 7) Rendu */
             return $this->render('what_to_watch/content.html.twig', [
                 'item'           => $item,
                 'isSeries'       => $isSeries,
@@ -97,29 +140,54 @@ class ContentController extends AbstractController
                 'watchProviders' => $watchProviders,
                 'links'          => $links,
                 'badges'         => $badges,
+                'isNowPlaying'   => $isNowPlaying,
             ]);
         } catch (\Throwable $e) {
-            $this->logger->error('Erreur détail contenu', [
-                'id'    => $id,
-                'type'  => $type,
-                'error' => $e->getMessage()
+            // 🔍 LOG: Erreur détaillée
+            $this->logger->error('❌ ERREUR COMPLÈTE', [
+                'id'         => $id,
+                'type'       => $type,
+                'exception'  => get_class($e),
+                'message'    => $e->getMessage(),
+                'file'       => $e->getFile(),
+                'line'       => $e->getLine(),
+                'trace'      => $e->getTraceAsString()
             ]);
 
             throw $this->createNotFoundException($isSeries ? 'Série introuvable.' : 'Film introuvable.');
         }
     }
 
-    /* ===========================
-     * OMDb (IMDb / RT / Metacritic)
-     * =========================== */
+    private function isCurrentlyInTheaters(array $item, bool $isSeries): bool
+    {
+        if ($isSeries) {
+            return false;
+        }
 
-    /**
-     * Récupère les données OMDb : IMDb, Rotten Tomatoes, Metacritic.
-     * Ajoute des champs normalisés utiles en Twig :
-     * - imdbRatingFloat
-     * - rottenTomatoesPercent
-     * - metacriticScoreInt
-     */
+        if (!isset($item['release_date']) || !$item['release_date']) {
+            return false;
+        }
+
+        try {
+            $releaseDate = new \DateTimeImmutable($item['release_date']);
+            $now = new \DateTimeImmutable();
+
+            if ($releaseDate > $now) {
+                return false;
+            }
+
+            $daysSinceRelease = $now->diff($releaseDate)->days;
+
+            return $daysSinceRelease < 60;
+        } catch (\Exception $e) {
+            $this->logger->warning('Erreur parsing release_date', [
+                'release_date' => $item['release_date'],
+                'error'        => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
     private function fetchOmdbData(array $item): ?array
     {
         try {
@@ -127,7 +195,6 @@ class ContentController extends AbstractController
                 return null;
             }
 
-            // imdb_id directement ou via external_ids
             $imdbId = $item['imdb_id'] ?? ($item['external_ids']['imdb_id'] ?? null);
             if (!$imdbId) {
                 return null;
@@ -150,7 +217,6 @@ class ContentController extends AbstractController
 
                 $data = $resp->toArray(false);
 
-                // Normalisation des scores
                 $data['imdbRatingFloat'] = null;
                 if (!empty($data['imdbRating']) && $data['imdbRating'] !== 'N/A') {
                     $data['imdbRatingFloat'] = (float)$data['imdbRating'];
@@ -162,11 +228,9 @@ class ContentController extends AbstractController
                 if (!empty($data['Ratings']) && is_array($data['Ratings'])) {
                     foreach ($data['Ratings'] as $r) {
                         if (($r['Source'] ?? null) === 'Rotten Tomatoes' && !empty($r['Value'])) {
-                            // "88%" => 88
                             $data['rottenTomatoesPercent'] = (float)str_replace('%', '', $r['Value']);
                         }
                         if (($r['Source'] ?? null) === 'Metacritic' && !empty($r['Value'])) {
-                            // "73/100" => 73
                             $txt = $r['Value'];
                             if (strpos($txt, '/') !== false) {
                                 $parts = explode('/', $txt, 2);
@@ -176,7 +240,6 @@ class ContentController extends AbstractController
                     }
                 }
 
-                // Ajout de champs bruts facilitant Twig si présents autrement
                 if (!isset($data['MetacriticScore']) && $data['metacriticScoreInt'] !== null) {
                     $data['MetacriticScore'] = $data['metacriticScoreInt'] . '/100';
                 }
@@ -195,13 +258,6 @@ class ContentController extends AbstractController
         }
     }
 
-    /* ===========================
-     * PLATEFORMES TMDb (FR)
-     * =========================== */
-
-    /**
-     * Extrait les plateformes (FR) : flatrate / rent / buy
-     */
     private function extractWatchProviders(array $item): array
     {
         $providers = [
@@ -210,7 +266,14 @@ class ContentController extends AbstractController
             'buy'      => [],
         ];
 
-        $root = $item['watch/providers']['results'][self::REGION] ?? null;
+        // 🔍 LOG: Vérification structure
+        $this->logger->debug('🔍 Structure watch_providers', [
+            'has_watch_providers' => isset($item['watch_providers']),
+            'has_results' => isset($item['watch_providers']['results']),
+            'has_FR' => isset($item['watch_providers']['results'][self::REGION])
+        ]);
+
+        $root = $item['watch_providers']['results'][self::REGION] ?? null;
         if (!$root) {
             return $providers;
         }
@@ -228,13 +291,6 @@ class ContentController extends AbstractController
         return $providers;
     }
 
-    /* ===========================
-     * LIENS EXTERNES
-     * =========================== */
-
-    /**
-     * Génère les liens TMDb/IMDb/Rotten/Metacritic
-     */
     private function generateLinks(array $item, string $type, int $id): array
     {
         $links = [
@@ -244,24 +300,19 @@ class ContentController extends AbstractController
             'metacritic'      => null,
         ];
 
-        // TMDb
         $links['tmdb'] = sprintf('https://www.themoviedb.org/%s/%d', $type, $id);
 
-        // IMDb
         $imdbId = $item['imdb_id'] ?? ($item['external_ids']['imdb_id'] ?? null);
         if ($imdbId) {
             $links['imdb'] = 'https://www.imdb.com/title/' . $imdbId . '/';
         }
 
-        // Rotten Tomatoes / Metacritic : on tente une heuristique slug
         $title = $type === 'movie' ? ($item['title'] ?? '') : ($item['name'] ?? '');
         if ($title) {
-            // Rotten = underscores
             $rtSlug   = $this->slugWithUnderscores($title);
             $rtPrefix = $type === 'movie' ? 'm' : 'tv';
             $links['rotten_tomatoes'] = sprintf('https://www.rottentomatoes.com/%s/%s', $rtPrefix, $rtSlug);
 
-            // Metacritic = dashes
             $mcSlug = $this->slugWithDashes($title);
             $links['metacritic'] = sprintf('https://www.metacritic.com/%s/%s', $type, $mcSlug);
         }
@@ -289,10 +340,6 @@ class ContentController extends AbstractController
         return $slug ?: 'titre';
     }
 
-    /* ===========================
-     * PERSONNES (Acteurs/Réalisateurs)
-     * =========================== */
-
     #[Route('/person/{id}', name: 'person_details', requirements: ['id' => '\d+'])]
     public function personDetails(int $id): Response
     {
@@ -310,12 +357,10 @@ class ContentController extends AbstractController
                 return $resp->toArray();
             });
 
-            // Filmographie – tri par dates
             $movieCredits = $person['movie_credits']['cast'] ?? [];
             $movieCrew    = $person['movie_credits']['crew'] ?? [];
             $tvCredits    = $person['tv_credits']['cast'] ?? [];
 
-            // Réalisations
             $directedMovies = array_filter($movieCrew, fn($c) => ($c['job'] ?? null) === 'Director');
 
             usort($movieCredits, function ($a, $b) {

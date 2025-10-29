@@ -2,265 +2,483 @@
 
 {% block title %}
 	{{ isSeries ? item.name : item.title }}
+	- CinéQuest
 {% endblock %}
 
 {% block body %}
-
-	{# --- FANART EN FOND --- #}
-	{% set fanart = (item.backdrop_path is defined and item.backdrop_path) ? 'https://image.tmdb.org/t/p/original' ~ item.backdrop_path : null %}
-
-	<div class="wtw-fanart-wrapper" style="{% if fanart %}--fanart:url('{{ fanart }}');{% endif %}">
-
-		<div class="container my-5">
-
-			<div class="body-content bg-dark bg-opacity-75 p-4 rounded shadow-lg">
-				<h3 class="title-show text-center my-4 text-white">
+	<div
+		class="content-container">
+		{# Hero Section avec backdrop #}
+		<div class="content-hero" style="
+																																                                {% if item.backdrop_path %}
+																																                                    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.95)), url('https://image.tmdb.org/t/p/original{{ item.backdrop_path }}');
+																																                                {% else %}
+																																                                    background-color: #1a1a1a;
+																																                                {% endif %}
+																																                                background-size: cover;
+																																                                background-position: center;
+																																                                padding: 3rem 0;
+																																                            ">
+			<div
+				class="container">
+				{# Titre principal #}
+				<h1 class="main-title display-4 mb-4 fw-bold text-center" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.8);">
 					{{ isSeries ? item.name : item.title }}
-					({{ (isSeries and item.first_air_date ? item.first_air_date : item.release_date)|date('Y') }})
-				</h3>
+					{% if item.release_date or item.first_air_date %}
+						<span class="year">
+							({{ (isSeries ? item.first_air_date : item.release_date)|date('Y') }})
+						</span>
+					{% endif %}
+				</h1>
 
-				<div class="container-fluid">
-					<div class="row">
-						<div
-							class="col-md-4">
-							{# --- POSTER SIMPLE (zoomable) --- #}
-							<div class="poster-container position-relative">
-								{% if item.poster_path %}
-									<img class="movie-poster img-fluid rounded" src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" alt="Poster de {{ isSeries ? item.name : item.title }}" data-action="click->poster-lightbox#open" data-controller="poster-lightbox" data-poster-lightbox-url-value="https://image.tmdb.org/t/p/original{{ item.poster_path }}" style="cursor: pointer;">
-								{% else %}
-									<img class="movie-poster img-fluid rounded" src="https://placehold.co/500x750/222/FFF?text=Pas+d'affiche" alt="Pas d'affiche disponible">
-								{% endif %}
-								{# ... dans .poster-container, sous les boutons favoris/signet #}
-								{% include 'partials/badges.html.twig' with { badges: badges } %}
+				<div
+					class="row">
+					{# === COLONNE GAUCHE : AFFICHE + INFOS === #}
+					<div class="col-lg-4 col-md-5">
+						<div class="position-relative poster-container mb-4">
+							{% if item.poster_path %}
+								<img src="https://image.tmdb.org/t/p/w500{{ item.poster_path }}" class="img-fluid rounded shadow-lg poster-image" alt="Poster de {{ isSeries ? item.name : item.title }}" data-action="click->poster-lightbox#open" data-controller="poster-lightbox" data-poster-lightbox-url-value="https://image.tmdb.org/t/p/original{{ item.poster_path }}" style="cursor: pointer; width: 100%;">
+							{% else %}
+								<img src="{{ asset('build/images/cine-room.jpeg') }}" class="img-fluid rounded shadow-lg" alt="Poster non disponible" style="width: 100%;">
+							{% endif %}
 
+							{# Note TMDb en haut à droite de l'affiche (POSITIONNÉ PLUS HAUT) #}
+							<div class="tmdb-score-badge" style="
+																																																																								                                                                        position: absolute;
+																																																																								                                                                        top: 15px;
+																																																																								                                                                        right: 15px;
+																																																																								                                                                        width: 70px;
+																																																																								                                                                        height: 70px;
+																																																																								                                                                        background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%);
+																																																																								                                                                        border-radius: 50%;
+																																																																								                                                                        display: flex;
+																																																																								                                                                        align-items: center;
+																																																																								                                                                        justify-content: center;
+																																																																								                                                                        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+																																																																								                                                                        border: 4px solid rgba(255,255,255,0.9);
+																																																																								                                                                        z-index: 10;
+																																																																								                                                                    ">
+								<span class="fw-bold text-white" style="font-size: 1.5rem;">
+									{{ (item.vote_average * 10)|round }}%
+								</span>
+							</div>
 
-								{# Note TMDb #}
-								{% if item.vote_average is defined and item.vote_average > 0 %}
-									<div class="content-rating">
-										{{ item.vote_average|round(1, 'floor') }}
-									</div>
-								{% endif %}
+							{# Badges (films cultes, classique, chef-d'œuvre) - BIEN VISIBLES #}
+							{% if badges is defined and badges is not empty %}
+								<div style="position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 10;">
+									{% include 'partials/badges.html.twig' with { badges: badges } %}
+								</div>
+							{% endif %}
 
-								{# Boutons favoris / signets #}
-								{% if app.user %}
-									{% set isFavorite = false %}
-									{% set inLists = [] %}
+							{# Boutons Favori et Liste (si connecté) #}
+							{% if app.user %}
+								{% set isFavorite = false %}
+								{% set inLists = [] %}
 
-									{% if app.user.movieLists is not empty %}
-										{% for list in app.user.movieLists %}
-											{% for listItem in list.movieListItems %}
-												{% if listItem.tmdbId == item.id and listItem.tmdbType == (isSeries ? 'tv' : 'movie') %}
-													{% set inLists = inLists|merge([list.name]) %}
-													{% if list.name == 'Mon Panthéon' or list.name == 'Favoris' %}
-														{% set isFavorite = true %}
-													{% endif %}
+								{% if app.user.movieLists is not empty %}
+									{% for list in app.user.movieLists %}
+										{% for listItem in list.movieListItems %}
+											{% if listItem.tmdbId == item.id and listItem.tmdbType == (isSeries ? 'tv' : 'movie') %}
+												{% set inLists = inLists|merge([list.name]) %}
+												{% if list.name == 'Mon Panthéon' or list.name == 'Favoris' %}
+													{% set isFavorite = true %}
 												{% endif %}
-											{% endfor %}
+											{% endif %}
 										{% endfor %}
-									{% endif %}
+									{% endfor %}
+								{% endif %}
 
-									<button class="in-lists-badge {{ inLists is not empty ? 'has-lists' : '' }}" data-controller="bookmark" data-bookmark-tmdb-id-value="{{ item.id }}" data-bookmark-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-html="true" title="{{ inLists is not empty ? '<strong>Dans vos listes :</strong><br>' ~ inLists|join('<br>') : 'Pas encore dans vos listes' }}" type="button" disabled>
-										<i class="fas fa-bookmark"></i>
-									</button>
-
-									<button class="favorite-star {{ isFavorite ? 'is-favorite' : '' }}" data-tmdb-id="{{ item.id }}" data-tmdb-type="{{ isSeries ? 'tv' : 'movie' }}" data-controller="favorite" data-action="click->favorite#toggle" aria-label="Ajouter à Mon Panthéon" title="{{ isFavorite ? 'Retirer de Mon Panthéon' : 'Ajouter à Mon Panthéon' }}" type="button">
+								<div class="favorite-btn-container" data-controller="favorite" data-favorite-tmdb-id-value="{{ item.id }}" data-favorite-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}">
+									<button class="btn btn-favorite {{ isFavorite ? 'is-favorite' : '' }}" data-action="favorite#toggle" title="{{ isFavorite ? 'Retirer de Mon Panthéon' : 'Ajouter à Mon Panthéon' }}">
 										<i class="fas fa-star"></i>
 									</button>
-								{% endif %}
-							</div>
+								</div>
 
-							{# Lightbox pour zoom #}
-							<div id="posterLightbox" class="poster-lightbox" data-controller="poster-lightbox" data-action="click->poster-lightbox#close">
-								<span class="lightbox-close" data-action="click->poster-lightbox#close">&times;</span>
-								<img class="lightbox-content" id="lightboxImage" alt="">
-							</div>
+								<button class="in-lists-badge {{ inLists is not empty ? 'has-lists' : '' }}" data-controller="bookmark" data-bookmark-tmdb-id-value="{{ item.id }}" data-bookmark-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="{{ inLists is not empty ? '<strong>Dans vos listes :</strong><br>' ~ inLists|join('<br>') : 'Pas encore dans vos listes' }}" type="button" disabled>
+									<i class="fas fa-bookmark"></i>
+								</button>
+							{% endif %}
+						</div>
 
-							{# --- PAYS / BUDGET --- #}
-							<div class="mt-3 text-white">
-								{% if not isSeries and item.production_countries is not empty %}
-									{% set countryNames = [] %}
-									{% for c in item.production_countries %}
-										{% if c.name is defined %}
-											{% set countryNames = countryNames|merge([c.name]) %}
-										{% endif %}
-									{% endfor %}
-									{% if countryNames is not empty %}
-										<p class="mb-1">
-											<strong>Pays d'origine :</strong>
-											{{ countryNames|join(', ') }}</p>
+						{# Lightbox pour zoom poster #}
+						<div id="posterLightbox" class="poster-lightbox" data-controller="poster-lightbox" data-action="click->poster-lightbox#close">
+							<span class="lightbox-close" data-action="click->poster-lightbox#close">&times;</span>
+							<img class="lightbox-content" id="lightboxImage" alt="">
+						</div>
+
+						{# === INFORMATIONS CONDENSÉES SOUS L'AFFICHE === #}
+						<div
+							class="movie-info-compact bg-dark bg-opacity-75 rounded-3 p-3 shadow">
+							{# Pays d'origine #}
+							{% if item.production_countries is defined and item.production_countries is not empty %}
+								<div class="info-item mb-2">
+									<i class="fas fa-globe text-primary me-2"></i>
+									<strong class="text-white-50">Pays d'origine :</strong>
+									<span class="text-white">
+										{% for country in item.production_countries %}
+											{{ country.name }}
+											{% if not loop.last %},
+											{% endif %}
+										{% endfor %}
+									</span>
+								</div>
+							{% endif %}
+
+							{# Budget (uniquement pour les films) #}
+							{% if not isSeries and item.budget is defined and item.budget > 0 %}
+								<div class="info-item mb-2">
+									<i class="fas fa-money-bill-wave text-success me-2"></i>
+									<strong class="text-white-50">Budget :</strong>
+									<span class="text-white">
+										{{ (item.budget / 1000000)|number_format(0, ',', ' ') }}
+										M$
+									</span>
+								</div>
+							{% endif %}
+
+							{# Date de sortie #}
+							<div class="info-item mb-2">
+								<i class="fas fa-calendar-alt text-warning me-2"></i>
+								<strong class="text-white-50">
+									{{ isSeries ? 'Première diffusion' : 'Date de sortie' }}
+									:
+								</strong>
+								<span class="text-white">
+									{% if isSeries %}
+										{{ item.first_air_date ? item.first_air_date|date('d/m/Y') : 'Date inconnue' }}
+									{% else %}
+										{{ item.release_date ? item.release_date|date('d/m/Y') : 'Date inconnue' }}
 									{% endif %}
-								{% elseif isSeries and item.origin_country is not empty %}
-									<p class="mb-1">
-										<strong>Pays d'origine :</strong>
-										{{ item.origin_country|join(', ') }}</p>
+								</span>
+							</div>
+
+							{# Durée / Saisons #}
+							{% if isSeries %}
+								{% if item.number_of_seasons is defined %}
+									<div class="info-item mb-2">
+										<i class="fas fa-tv text-info me-2"></i>
+										<strong class="text-white-50">Contenu :</strong>
+										<span class="text-white">
+											{{ item.number_of_seasons }}
+											saison{{ item.number_of_seasons > 1 ? 's' : '' }}
+											•
+											{{ item.number_of_episodes }}
+											épisode{{ item.number_of_episodes > 1 ? 's' : '' }}
+										</span>
+									</div>
 								{% endif %}
-
-								{% if not isSeries and item.budget is defined and item.budget > 0 %}
-									<p class="mb-1">
-										<strong>Budget :</strong>
-										{{ item.budget|number_format(0, '.', ' ') }}
-										€</p>
+							{% else %}
+								{% if item.runtime %}
+									<div class="info-item mb-2">
+										<i class="fas fa-clock text-danger me-2"></i>
+										<strong class="text-white-50">Durée :</strong>
+										<span class="text-white">
+											{{ item.runtime }}
+											minutes ({{ (item.runtime / 60)|round(1) }}h)
+										</span>
+									</div>
 								{% endif %}
+							{% endif %}
 
-								{# --- NOTES TMDB + IMDb + RT + Metacritic --- #}
-								<div class="mt-3 ratings-section">
-									<h5 class="mb-3">
-										<strong>
-											<i class="fas fa-star text-warning me-1"></i>Notes</strong>
-									</h5>
+							{# Genres #}
+							{% if item.genres is defined and item.genres is not empty %}
+								<div class="info-item mb-3 mt-3">
+									<i class="fas fa-tags text-secondary me-2"></i>
+									<strong class="text-white-50 d-block mb-2">Genres :</strong>
+									<div class="genres-list">
+										{% for genre in item.genres %}
+											<span class="badge bg-secondary me-1 mb-1">{{ genre.name }}</span>
+										{% endfor %}
+									</div>
+								</div>
+							{% endif %}
 
-									<div
-										class="ratings-container">
-										{# TMDb #}
-										{% if item.vote_average is defined and item.vote_average > 0 %}
-											{% set tmdbPercent = (item.vote_average * 10)|round(0) %}
-											<div class="rating-item mb-3">
-												<a href="{{ links.tmdb }}" target="_blank" rel="noopener noreferrer" class="rating-logo-link" title="Voir sur TMDb">
-													<div class="rating-logo-wrapper tmdb-logo-bg">
-														<img src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg" alt="TMDb" class="rating-logo-img">
-													</div>
-												</a>
-												<div class="rating-details">
-													<div class="rating-score tmdb-score">
-														<span class="score-number">{{ tmdbPercent }}%</span>
-													</div>
-													{% if item.vote_count is defined and item.vote_count > 0 %}
-														<div class="rating-votes">{{ item.vote_count|number_format(0, '.', ' ') }}
-															votes</div>
-													{% endif %}
-												</div>
-											</div>
+							{# === NOTES AMÉLIORÉES === #}
+							<div class="ratings-section mt-3 pt-3 border-top border-secondary">
+								<h6 class="mb-3">
+									<i class="fas fa-star text-warning me-2"></i>Notes :
+								</h6>
+
+								{# TMDb - Format pourcentage comme sur leur site #}
+								<div class="rating-item d-flex align-items-center justify-content-between mb-2">
+									<div class="d-flex align-items-center">
+										{% if links.tmdb %}
+											<a href="{{ links.tmdb }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
+												<img src="{{ asset('build/images/ratings/tmdb.svg') }}" alt="TMDb" style="width: 32px; height: 32px;">
+											</a>
 										{% endif %}
-
-										{# IMDb #}
-										{% if omdb is defined and omdb is not null %}
-											{% set imdbRating = omdb.imdbRating ?? null %}
-											{% if imdbRating and imdbRating != 'N/A' and links.imdb %}
-												<div class="rating-item mb-3">
-													<a href="{{ links.imdb }}" target="_blank" rel="noopener noreferrer" class="rating-logo-link" title="Voir sur IMDb">
-														<div class="rating-logo-wrapper imdb-logo-bg">
-															<img src="https://upload.wikimedia.org/wikipedia/commons/6/69/IMDB_Logo_2016.svg" alt="IMDb" class="rating-logo-img imdb-logo-img">
-														</div>
-													</a>
-													<div class="rating-details">
-														<div class="rating-score imdb-score">
-															<span class="score-number">{{ imdbRating }}/10</span>
-														</div>
-														{% if omdb.imdbVotes is defined and omdb.imdbVotes != 'N/A' %}
-															<div class="rating-votes">{{ omdb.imdbVotes }}
-																votes</div>
-														{% endif %}
-													</div>
-												</div>
-											{% endif %}
-
-											{# Rotten Tomatoes #}
-											{% set rtScore = omdb.RottenTomatoesScore ?? null %}
-											{% if rtScore and rtScore != 'N/A' and links.rotten_tomatoes %}
-												<div class="rating-item mb-3">
-													<a href="{{ links.rotten_tomatoes }}" target="_blank" rel="noopener noreferrer" class="rating-logo-link" title="Voir sur Rotten Tomatoes">
-														<div class="rating-logo-wrapper rt-logo-bg">
-															<img src="{{ asset('build/images/ratings/rotten-tomatoes.png') }}" alt="Rotten Tomatoes" class="rating-logo-img rt-logo-img">
-														</div>
-													</a>
-													<div class="rating-details">
-														<div class="rating-score rt-score">
-															<span class="score-number">{{ rtScore }}</span>
-														</div>
-														<div class="rating-votes">Tomatometer</div>
-													</div>
-												</div>
-											{% endif %}
-
-											{# Metacritic #}
-											{% set metacriticScore = omdb.MetacriticScore ?? null %}
-											{% if metacriticScore and metacriticScore != 'N/A' and links.metacritic %}
-												<div class="rating-item mb-3">
-													<a href="{{ links.metacritic }}" target="_blank" rel="noopener noreferrer" class="rating-logo-link" title="Voir sur Metacritic">
-														<div class="rating-logo-wrapper metacritic-logo-bg">
-															<img src="{{ asset('build/images/ratings/metacritic.png') }}" alt="Metacritic" class="rating-logo-img metacritic-logo-img">
-														</div>
-													</a>
-													<div class="rating-details">
-														<div class="rating-score metacritic-score">
-															<span class="score-number">{{ metacriticScore }}</span>
-														</div>
-														<div class="rating-votes">Metascore</div>
-													</div>
-												</div>
-											{% endif %}
-										{% endif %}
+									</div>
+									<div class="rating-score">
+										<span class="badge" style="background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%); font-size: 1rem;">
+											{{ (item.vote_average * 10)|round }}%
+										</span>
 									</div>
 								</div>
 
-								{# --- PLATEFORMES EN DESSOUS DES NOTES --- #}
-								{% if watchProviders.flatrate is not empty or watchProviders.rent is not empty or watchProviders.buy is not empty %}
-									<div class="mt-4">
-										<h4 class="director d-inline-block px-2 rounded mb-3">Disponible sur</h4>
+								{# IMDb - Format X/10 comme sur leur site #}
+								{% if omdb is defined and omdb.imdbRatingFloat is defined and omdb.imdbRatingFloat %}
+									<div class="rating-item d-flex align-items-center justify-content-between mb-2">
+										{% if links.imdb %}
+											<a href="{{ links.imdb }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
 
-										{% if watchProviders.flatrate is not empty %}
-											<div class="mb-3">
-												<p class="mb-2 small text-muted fw-bold">
-													<i class="fas fa-play-circle me-1"></i>STREAMING</p>
-												<div class="d-flex flex-wrap gap-2">
-													{% for provider in watchProviders.flatrate %}
-														<div class="watch-provider-item" data-bs-toggle="tooltip" title="{{ provider.provider_name }}">
-															<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
-														</div>
-													{% endfor %}
-												</div>
-											</div>
+												<img src="{{ asset('build/images/ratings/IMDB.png') }}" alt="TMDb" style="width: 32px; height: 32px;">
+											</a>
 										{% endif %}
-
-										{% if watchProviders.rent is not empty %}
-											<div class="mb-3">
-												<p class="mb-2 small text-muted fw-bold">
-													<i class="fas fa-shopping-cart me-1"></i>LOCATION</p>
-												<div class="d-flex flex-wrap gap-2">
-													{% for provider in watchProviders.rent %}
-														<div class="watch-provider-item" data-bs-toggle="tooltip" title="{{ provider.provider_name }}">
-															<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
-														</div>
-													{% endfor %}
-												</div>
-											</div>
-										{% endif %}
-
-										{% if watchProviders.buy is not empty %}
-											<div class="mb-3">
-												<p class="mb-2 small text-muted fw-bold">
-													<i class="fas fa-dollar-sign me-1"></i>ACHAT</p>
-												<div class="d-flex flex-wrap gap-2">
-													{% for provider in watchProviders.buy %}
-														<div class="watch-provider-item" data-bs-toggle="tooltip" title="{{ provider.provider_name }}">
-															<img src="https://image.tmdb.org/t/p/original{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="rounded">
-														</div>
-													{% endfor %}
-												</div>
-											</div>
-										{% endif %}
+										<div class="rating-score">
+											<span class="badge bg-warning text-dark fw-bold" style="font-size: 1rem;">
+												{{ omdb.imdbRatingFloat }}/10
+											</span>
+										</div>
 									</div>
-								{% else %}
-									<div class="mt-4">
-										<p class="text-muted small fst-italic">
-											<i class="fas fa-info-circle me-1"></i>Aucune plateforme disponible en France pour le moment.
-										</p>
+								{% endif %}
+
+								{# Rotten Tomatoes - Format pourcentage comme sur leur site #}
+								{% if omdb is defined and omdb.rottenTomatoesPercent is defined and omdb.rottenTomatoesPercent %}
+									<div class="rating-item d-flex align-items-center justify-content-between mb-2">
+										{% if links.rotten_tomatoes %}
+											<a href="{{ links.rotten_tomatoes }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
+
+												<img src="{{ asset('build/images/ratings/rotten-tomatoes.png') }}" alt="TMDb" style="width: 32px; height: 32px;">
+											</a>
+										{% endif %}
+										<div class="rating-score">
+											<span class="badge bg-danger fw-bold" style="font-size: 1rem;">
+												{{ omdb.rottenTomatoesPercent|round }}%
+											</span>
+										</div>
+									</div>
+								{% endif %}
+
+								{# Metacritic - Format pourcentage comme sur leur site #}
+								{% if omdb is defined and omdb.metacriticScoreInt is defined and omdb.metacriticScoreInt %}
+									<div class="rating-item d-flex align-items-center justify-content-between mb-2">
+										{% if links.metacritic %}
+											<a href="{{ links.metacritic }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
+												<img src="{{ asset('build/images/ratings/metacritic.png') }}" alt="TMDb" style="width: 32px; height: 32px;">
+											</a>
+										{% endif %}
+										<div class="rating-score">
+											<span class="badge bg-info fw-bold" style="font-size: 1rem;">
+												{{ omdb.metacriticScoreInt|round }}%
+											</span>
+										</div>
 									</div>
 								{% endif %}
 							</div>
 
-							{# --- AJOUT À UNE LISTE --- #}
+							{# === BLOC "DISPONIBLE SUR" DÉPLACÉ ICI === #}
+							<div class="available-on-section mt-3 pt-3 border-top border-secondary">
+								{% if not isSeries %}
+									{# Films au cinéma actuellement #}
+									{% if isNowPlaying is defined and isNowPlaying %}
+										<div class="showtimes-section">
+											<h6 class="mb-3">
+												<i class="fas fa-film me-2"></i>Actuellement au cinéma
+											</h6>
+											<p class="text-white-50 mb-3 small">
+												Ce film est actuellement projeté en salles !
+											</p>
+											<div data-controller="showtimes" data-showtimes-movie-id-value="{{ item.id }}" data-showtimes-movie-title-value="{{ item.title }}">
+												<button type="button" class="btn btn-warning btn-sm w-100" data-action="click->showtimes#findNearby">
+													<i class="fas fa-map-marker-alt me-2"></i>
+													Trouver une séance
+												</button>
+												<p class="text-muted small mt-2 mb-0" style="font-size: 0.75rem;">
+													<i class="fas fa-info-circle me-1"></i>
+													Nécessite la géolocalisation
+												</p>
+												<div data-showtimes-target="results" class="mt-3"></div>
+											</div>
+										</div>
+
+										{# Films disponibles sur plateformes #}
+									{% elseif watchProviders is defined and (watchProviders.flatrate is not empty or watchProviders.rent is not empty or watchProviders.buy is not empty) %}
+										<div class="platforms-section">
+											<h6 class="mb-3">
+												<i class="fas fa-tv me-2"></i>Disponible sur :
+											</h6>
+
+											{# STREAMING #}
+											{% if watchProviders.flatrate is not empty %}
+												<div class="provider-category mb-3">
+													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+														<i class="fas fa-play-circle me-2 text-success"></i>Streaming
+													</h5>
+													<div class="row g-2">
+														{% for provider in watchProviders.flatrate %}
+															<div class="col-4">
+																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
+																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
+																		{% if provider.logo_path %}
+																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																		{% else %}
+																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
+																				{{ provider.provider_name }}
+																			</p>
+																		{% endif %}
+																	</div>
+																</a>
+															</div>
+														{% endfor %}
+													</div>
+												</div>
+											{% endif %}
+
+											{# LOCATION #}
+											{% if watchProviders.rent is not empty %}
+												<div class="provider-category mb-3">
+													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+														<i class="fas fa-ticket-alt me-2 text-info"></i>Location
+													</h5>
+													<div class="row g-2">
+														{% for provider in watchProviders.rent %}
+															<div class="col-4">
+																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
+																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
+																		{% if provider.logo_path %}
+																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																		{% else %}
+																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
+																				{{ provider.provider_name }}
+																			</p>
+																		{% endif %}
+																	</div>
+																</a>
+															</div>
+														{% endfor %}
+													</div>
+												</div>
+											{% endif %}
+
+											{# ACHAT #}
+											{% if watchProviders.buy is not empty %}
+												<div class="provider-category">
+													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+														<i class="fas fa-shopping-cart me-2 text-danger"></i>Achat
+													</h5>
+													<div class="row g-2">
+														{% for provider in watchProviders.buy %}
+															<div class="col-4">
+																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
+																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
+																		{% if provider.logo_path %}
+																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																		{% else %}
+																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
+																				{{ provider.provider_name }}
+																			</p>
+																		{% endif %}
+																	</div>
+																</a>
+															</div>
+														{% endfor %}
+													</div>
+												</div>
+											{% endif %}
+										</div>
+									{% endif %}
+
+									{# Séries - toujours afficher les plateformes #}
+								{% else %}
+									{% if watchProviders is defined and (watchProviders.flatrate is not empty or watchProviders.rent is not empty or watchProviders.buy is not empty) %}
+										<div class="platforms-section">
+											<h6 class="mb-3">
+												<i class="fas fa-tv me-2"></i>Disponible sur :
+											</h6>
+
+											{# Même structure que pour les films #}
+											{% if watchProviders.flatrate is not empty %}
+												<div class="provider-category mb-3">
+													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+														<i class="fas fa-play-circle me-2 text-success"></i>Streaming
+													</h5>
+													<div class="row g-2">
+														{% for provider in watchProviders.flatrate %}
+															<div class="col-4">
+																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
+																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
+																		{% if provider.logo_path %}
+																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																		{% else %}
+																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
+																				{{ provider.provider_name }}
+																			</p>
+																		{% endif %}
+																	</div>
+																</a>
+															</div>
+														{% endfor %}
+													</div>
+												</div>
+											{% endif %}
+
+											{% if watchProviders.rent is not empty %}
+												<div class="provider-category mb-3">
+													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+														<i class="fas fa-ticket-alt me-2 text-info"></i>Location
+													</h5>
+													<div class="row g-2">
+														{% for provider in watchProviders.rent %}
+															<div class="col-4">
+																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
+																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
+																		{% if provider.logo_path %}
+																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																		{% else %}
+																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
+																				{{ provider.provider_name }}
+																			</p>
+																		{% endif %}
+																	</div>
+																</a>
+															</div>
+														{% endfor %}
+													</div>
+												</div>
+											{% endif %}
+
+											{% if watchProviders.buy is not empty %}
+												<div class="provider-category">
+													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+														<i class="fas fa-shopping-cart me-2 text-danger"></i>Achat
+													</h5>
+													<div class="row g-2">
+														{% for provider in watchProviders.buy %}
+															<div class="col-4">
+																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
+																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
+																		{% if provider.logo_path %}
+																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																		{% else %}
+																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
+																				{{ provider.provider_name }}
+																			</p>
+																		{% endif %}
+																	</div>
+																</a>
+															</div>
+														{% endfor %}
+													</div>
+												</div>
+											{% endif %}
+
+										</div>
+									{% endif %}
+								{% endif %}
+							</div>
+
+							{# Bouton Ajouter à une liste #}
 							{% if app.user %}
 								<div class="dropdown mt-4" data-controller="add-to-list" data-add-to-list-tmdb-id-value="{{ item.id }}" data-add-to-list-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}">
-									<button class="btn btn-primary dropdown-toggle w-100 btn-lg" type="button" id="dropdownMenuButton-{{ item.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-										<i class="fas fa-plus"></i>
+									<button class="btn btn-primary dropdown-toggle w-100 btn-lg shadow" type="button" id="dropdownMenuButton-{{ item.id }}" data-bs-toggle="dropdown" aria-expanded="false">
+										<i class="fas fa-plus-circle me-2"></i>
 										Ajouter à une liste
 									</button>
-									<ul class="dropdown-menu w-100" aria-labelledby="dropdownMenuButton-{{ item.id }}">
+									<ul class="dropdown-menu w-100 shadow-lg" aria-labelledby="dropdownMenuButton-{{ item.id }}">
 										{% if app.user.movieLists is not empty %}
 											{% for list in app.user.movieLists %}
 												<li>
-													<a class="dropdown-item" href="{{ path('app_movie_list_add_item', {'id': list.id, 'tmdbId': item.id, 'tmdbType': isSeries ? 'tv' : 'movie'}) }}" data-action="click->add-to-list#add">
+													<a class="dropdown-item" href="{{ path('app_movie_list_add_item', { 'id': list.id, 'tmdbId': item.id, 'tmdbType': isSeries ? 'tv' : 'movie', 'posterPath': item.poster_path }) }}" data-action="click->add-to-list#add">
 														<i class="fas fa-list me-2"></i>
 														{{ list.name }}
 													</a>
@@ -269,111 +487,206 @@
 										{% else %}
 											<li>
 												<span class="dropdown-item disabled">
-													<i class="fas fa-info-circle me-2"></i>Créez d'abord une liste</span>
+													<i class="fas fa-info-circle me-2"></i>Créez d'abord une liste
+												</span>
 											</li>
 										{% endif %}
+										<li><hr class="dropdown-divider"></li>
+										<li>
+											<a class="dropdown-item text-success fw-bold" href="{{ path('app_movie_list_new') }}">
+												<i class="fas fa-plus-circle me-2"></i>Créer une nouvelle liste
+											</a>
+										</li>
 									</ul>
 								</div>
 							{% endif %}
 						</div>
+					</div>
 
-						{# --- SECTION DE DROITE (TRAILER, ACTEURS, SYNOPSIS) --- #}
-						<div class="col-md-8 text-white">
-							<div
-								class="row mb-4">
-
-								{# Réalisateur #}
-								<div class="col-md-12 mb-4">
-									{% set director = null %}
-									{% if item.credits.crew is defined %}
-										{% for member in item.credits.crew %}
-											{% if member.job == 'Director' and director is null %}
-												{% set director = member %}
-											{% endif %}
-										{% endfor %}
+					{# === COLONNE DROITE : RÉALISATEUR, TRAILER, ACTEURS, SYNOPSIS === #}
+					<div
+						class="col-lg-8 col-md-7 text-white">
+						{# Réalisateur #}
+						{% if not isSeries %}
+							{% set director = null %}
+							{% if item.credits.crew is defined %}
+								{% for member in item.credits.crew %}
+									{% if member.job == 'Director' and director is null %}
+										{% set director = member %}
 									{% endif %}
+								{% endfor %}
+							{% endif %}
 
-									<h4 class="director d-inline-block px-2 rounded mb-3">Réalisateur :</h4>
-									{% if director %}
-										<a href="{{ path('person_details', {'id': director.id}) }}" class="director-card text-decoration-none">
-											<div class="d-flex align-items-center mb-3 p-2 rounded director-hover">
-												{% if director.profile_path %}
-													<img src="https://image.tmdb.org/t/p/w185{{ director.profile_path }}" alt="Photo de {{ director.name }}" class="director-photo rounded-circle me-3">
-												{% else %}
-													<div class="director-photo-placeholder rounded-circle me-3 d-flex align-items-center justify-content-center">
-														<i class="fas fa-user fa-2x text-muted"></i>
-													</div>
-												{% endif %}
-												<div>
-													<p class="mb-0 fw-bold text-white">{{ director.name }}</p>
-													<small class="text-muted">Voir la filmographie
-														<i class="fas fa-arrow-right"></i>
-													</small>
+							{% if director %}
+								<div class="director-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
+									<h5 class="mb-3">
+										<i class="fas fa-video me-2"></i>
+										Réalisateur(s) :
+									</h5>
+									<a href="{{ path('person_details', {'id': director.id}) }}" class="text-decoration-none">
+										<div class="d-flex align-items-center director-card p-2 rounded" style="transition: all 0.3s; cursor: pointer;">
+											{% if director.profile_path %}
+												<img src="https://image.tmdb.org/t/p/w185{{ director.profile_path }}" alt="Photo de {{ director.name }}" class="rounded-circle me-3 shadow" style="width: 60px; height: 60px; object-fit: cover;">
+											{% else %}
+												<div class="rounded-circle me-3 bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+													<i class="fas fa-user fa-2x text-muted"></i>
 												</div>
-											</div>
-										</a>
-									{% else %}
-										<p class="real mt-2">Inconnu</p>
-									{% endif %}
-								</div>
-
-								{# Trailer YouTube #}
-								<div class="col-md-12 mb-4">
-									{% set trailer = null %}
-									{% if item.videos.results is defined %}
-										{% for video in item.videos.results %}
-											{% if trailer is null and video.type == 'Trailer' and video.site == 'YouTube' %}
-												{% set trailer = video %}
 											{% endif %}
-										{% endfor %}
-									{% endif %}
-
-									{% if trailer %}
-										<h4 class="director d-inline-block px-2 rounded mb-0">Bande-annonce :</h4>
-										<div class="ratio ratio-16x9 mt-2">
-											<iframe src="https://www.youtube.com/embed/{{ trailer.key }}?autoplay=1&mute=1&loop=1&playlist={{ trailer.key }}" title="Bande-annonce" allowfullscreen></iframe>
+											<div>
+												<p class="mb-0 fw-bold text-white fs-5">{{ director.name }}</p>
+												<small class="text-warning">
+													Voir la filmographie
+													<i class="fas fa-arrow-right"></i>
+												</small>
+											</div>
 										</div>
-									{% else %}
-										<p class="text-muted mt-2">Pas de bande-annonce disponible.</p>
-									{% endif %}
+									</a>
 								</div>
+							{% endif %}
+						{% endif %}
 
-								{# Acteurs #}
-								<div class="col-12">
-									<h4 class="director d-inline-block px-2 rounded">Acteurs principaux :</h4>
+						{# Bande-annonce #}
+						{% set trailer = null %}
+						{% if item.videos.results is defined %}
+							{% for video in item.videos.results %}
+								{% if trailer is null and video.type == 'Trailer' and video.site == 'YouTube' %}
+									{% set trailer = video %}
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+
+						{% if trailer %}
+							<div class="trailer-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
+								<h5 class="mb-3">
+									<i class="fas fa-play-circle me-2"></i>Bande-annonce :
+								</h5>
+								<div class="ratio ratio-16x9 rounded overflow-hidden shadow">
+									<iframe src="https://www.youtube.com/embed/{{ trailer.key }}?autoplay=0&mute=0" title="Bande-annonce" allowfullscreen style="border: none;"></iframe>
 								</div>
+							</div>
+						{% endif %}
 
-								<div class="row">
-									{% for actor in (item.credits.cast is defined ? item.credits.cast|slice(0, 4) : []) %}
-										<div class="stars col-6 col-md-3 text-center d-flex flex-column mb-3">
+						{# Acteurs principaux #}
+						{% if item.credits.cast is defined and item.credits.cast is not empty %}
+							<div class="actors-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
+								<h5 class="mb-3">
+									<i class="fas fa-users me-2"></i>Acteurs principaux :
+								</h5>
+								<div class="row g-3">
+									{% for actor in item.credits.cast|slice(0, 4) %}
+										<div class="col-6 col-lg-3">
 											<a href="{{ path('person_details', {'id': actor.id}) }}" class="text-decoration-none">
-												{% if actor.profile_path %}
-													<img class="image-stars rounded-circle img-fluid mb-2 actor-hover" src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="Photo de {{ actor.name }}">
-												{% else %}
-													<img class="image-stars rounded-circle img-fluid mb-2 actor-hover" src="https://placehold.co/200x300/222/FFF?text={{ actor.name|url_encode }}" alt="Photo de {{ actor.name }} non disponible">
-												{% endif %}
-												<p class="actor-name mt-auto text-white">{{ actor.name }}<br><em class="text-muted">({{ actor.character }})</em>
-												</p>
+												<div class="actor-card text-center" style="transition: transform 0.3s;">
+													{% if actor.profile_path %}
+														<img src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="Photo de {{ actor.name }}" class="img-fluid rounded-circle mb-2 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+													{% else %}
+														<div class="rounded-circle mx-auto mb-2 bg-secondary d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+															<i class="fas fa-user fa-3x text-muted"></i>
+														</div>
+													{% endif %}
+													<p class="actor-name text-white mb-1 small fw-bold">{{ actor.name }}</p>
+													<p class="actor-character text-muted small mb-0">
+														<em>{{ actor.character }}</em>
+													</p>
+												</div>
 											</a>
 										</div>
 									{% endfor %}
 								</div>
-
-								{# Synopsis #}
-								<div class="col-12 mt-4">
-									<h4 class="director d-inline-block px-2 rounded mb-3">Synopsis :</h4>
-									<p class="description">{{ item.overview }}</p>
-								</div>
-
 							</div>
-						</div>
+						{% endif %}
 
+						{# Synopsis #}
+						{% if item.overview %}
+							<div class="synopsis-section bg-dark bg-opacity-50 rounded-3 p-3 shadow">
+								<h5 class="mb-3">
+									<i class="fas fa-align-left me-2"></i>Synopsis :
+								</h5>
+								<p class="text-white-50 lh-lg">{{ item.overview }}</p>
+							</div>
+						{% endif %}
 					</div>
 				</div>
-
 			</div>
 		</div>
 
-	</div>
+		{# ===== RECOMMANDATIONS AVEC NOTES TMDB VISIBLES ===== #}
+		{% if item.recommendations.results is defined and item.recommendations.results is not empty %}
+			<div class="container my-5">
+				<h3 class="mb-4">
+					<i class="fas fa-lightbulb me-2"></i>Recommandations similaires
+				</h3>
 
+				<div class="row g-4">
+					{% for rec in item.recommendations.results|slice(0, 6) %}
+						<div class="col-6 col-md-4 col-lg-2">
+							<a href="{{ path(isSeries ? 'tv_content' : 'movie_content', {'id': rec.id}) }}" class="text-decoration-none">
+								<div class="recommendation-card position-relative" style="overflow: hidden; border-radius: 8px;">
+									{% if rec.poster_path %}
+										<img src="https://image.tmdb.org/t/p/w300{{ rec.poster_path }}" class="img-fluid shadow recommendation-poster" alt="{{ isSeries ? rec.name : rec.title }}" loading="lazy" style="width: 100%; transition: transform 0.3s;">
+									{% else %}
+										<div class="poster-placeholder shadow d-flex align-items-center justify-content-center bg-secondary" style="width: 100%; height: 300px;">
+											<i class="fas fa-film fa-3x text-muted"></i>
+										</div>
+									{% endif %}
+
+									{# ✅ MODIFICATION : Note de style identique à la principale, mais en petit #}
+									{% if rec.vote_average is defined and rec.vote_average > 0 %}
+										<div class="tmdb-mini-badge" style="
+																																																																																																                                                                                                position: absolute;
+																																																																																																                                                                                                top: 8px;
+																																																																																																                                                                                                right: 8px;
+																																																																																																                                                                                                width: 40px;
+																																																																																																                                                                                                height: 40px;
+																																																																																																                                                                                                background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%);
+																																																																																																                                                                                                border-radius: 50%;
+																																																																																																                                                                                                display: flex;
+																																																																																																                                                                                                align-items: center;
+																																																																																																                                                                                                justify-content: center;
+																																																																																																                                                                                                box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+																																																																																																                                                                                                border: 2px solid rgba(255,255,255,0.9);
+																																																																																																                                                                                                z-index: 10;
+																																																																																																                                                                                            ">
+											<span class="fw-bold text-white" style="font-size: 0.9rem;">
+												{{ (rec.vote_average * 10)|round }}%
+											</span>
+										</div>
+									{% endif %}
+
+									<p class="text-white text-center small mt-2 mb-0">
+										{{ isSeries ? rec.name : rec.title }}
+									</p>
+								</div>
+							</a>
+						</div>
+					{% endfor %}
+				</div>
+			</div>
+		{% endif %}
+
+		{# ===== MODAL POUR LES SÉANCES DE CINÉMA ===== #}
+		<div class="modal fade" id="showtimesModal" tabindex="-1" aria-labelledby="showtimesModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-lg modal-dialog-scrollable">
+				<div class="modal-content bg-dark text-white">
+					<div class="modal-header border-secondary">
+						<h5 class="modal-title" id="showtimesModalLabel">
+							<i class="fas fa-film me-2"></i>Séances de cinéma à proximité
+						</h5>
+						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body" id="showtimesModalBody">
+						<div class="text-center py-5">
+							<div class="spinner-border text-primary" role="status">
+								<span class="visually-hidden">Chargement...</span>
+							</div>
+							<p class="text-muted mt-3">Recherche des cinémas...</p>
+						</div>
+					</div>
+					<div class="modal-footer border-secondary">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 {% endblock %}
