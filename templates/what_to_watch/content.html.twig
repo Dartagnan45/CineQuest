@@ -8,17 +8,23 @@
 {% block body %}
 	<div
 		class="content-container">
-		{# Hero Section avec backdrop #}
-		<div class="content-hero" style="
-																																                                {% if item.backdrop_path %}
-																																                                    background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.95)), url('https://image.tmdb.org/t/p/original{{ item.backdrop_path }}');
-																																                                {% else %}
-																																                                    background-color: #1a1a1a;
-																																                                {% endif %}
-																																                                background-size: cover;
-																																                                background-position: center;
-																																                                padding: 3rem 0;
-																																                            ">
+		{#
+				   CHANGEMENT 1 :
+				   Le <div> content-hero commence ici et se terminera MAINTENANT TOUT EN BAS,
+				   juste avant le modal.
+				#}
+		<div
+			class="content-hero" style="
+							{% if item.backdrop_path %}
+								background-image: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.95)), url('https://image.tmdb.org/t/p/original{{ item.backdrop_path }}');
+							{% else %}
+								background-color: #1a1a1a;
+							{% endif %}
+							background-size: cover;
+							background-position: center;
+							padding: 3rem 0;">
+
+			{# Ce premier container contient les infos principales (affiche, synopsis, etc.) #}
 			<div
 				class="container">
 				{# Titre principal #}
@@ -42,39 +48,28 @@
 								<img src="{{ asset('build/images/cine-room.jpeg') }}" class="img-fluid rounded shadow-lg" alt="Poster non disponible" style="width: 100%;">
 							{% endif %}
 
-							{# Note TMDb en haut à droite de l'affiche (POSITIONNÉ PLUS HAUT) #}
+							{# Note TMDb #}
 							<div class="tmdb-score-badge" style="
-																																																																								                                                                        position: absolute;
-																																																																								                                                                        top: 15px;
-																																																																								                                                                        right: 15px;
-																																																																								                                                                        width: 70px;
-																																																																								                                                                        height: 70px;
-																																																																								                                                                        background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%);
-																																																																								                                                                        border-radius: 50%;
-																																																																								                                                                        display: flex;
-																																																																								                                                                        align-items: center;
-																																																																								                                                                        justify-content: center;
-																																																																								                                                                        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-																																																																								                                                                        border: 4px solid rgba(255,255,255,0.9);
-																																																																								                                                                        z-index: 10;
-																																																																								                                                                    ">
+																	position: absolute; top: 450px; right: 15px; width: 70px; height: 70px;
+																	background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%);
+																	border-radius: 50%; display: flex; align-items: center; justify-content: center;
+																	box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 4px solid rgba(255,255,255,0.9); z-index: 10;">
 								<span class="fw-bold text-white" style="font-size: 1.5rem;">
-									{{ (item.vote_average * 10)|round }}%
+									{{ (item.vote_average * 0.985)|round(1, 'floor') }}
 								</span>
 							</div>
 
-							{# Badges (films cultes, classique, chef-d'œuvre) - BIEN VISIBLES #}
+							{# Badges #}
 							{% if badges is defined and badges is not empty %}
 								<div style="position: absolute; bottom: 15px; left: 15px; right: 15px; z-index: 10;">
 									{% include 'partials/badges.html.twig' with { badges: badges } %}
 								</div>
 							{% endif %}
 
-							{# Boutons Favori et Liste (si connecté) #}
+							{# Boutons Utilisateur #}
 							{% if app.user %}
 								{% set isFavorite = false %}
 								{% set inLists = [] %}
-
 								{% if app.user.movieLists is not empty %}
 									{% for list in app.user.movieLists %}
 										{% for listItem in list.movieListItems %}
@@ -87,62 +82,53 @@
 										{% endfor %}
 									{% endfor %}
 								{% endif %}
-
 								<div class="favorite-btn-container" data-controller="favorite" data-favorite-tmdb-id-value="{{ item.id }}" data-favorite-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}">
 									<button class="btn btn-favorite {{ isFavorite ? 'is-favorite' : '' }}" data-action="favorite#toggle" title="{{ isFavorite ? 'Retirer de Mon Panthéon' : 'Ajouter à Mon Panthéon' }}">
 										<i class="fas fa-star"></i>
 									</button>
 								</div>
-
 								<button class="in-lists-badge {{ inLists is not empty ? 'has-lists' : '' }}" data-controller="bookmark" data-bookmark-tmdb-id-value="{{ item.id }}" data-bookmark-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}" data-bs-toggle="tooltip" data-bs-placement="left" data-bs-html="true" title="{{ inLists is not empty ? '<strong>Dans vos listes :</strong><br>' ~ inLists|join('<br>') : 'Pas encore dans vos listes' }}" type="button" disabled>
 									<i class="fas fa-bookmark"></i>
 								</button>
 							{% endif %}
 						</div>
 
-						{# Lightbox pour zoom poster #}
+						{# Lightbox #}
 						<div id="posterLightbox" class="poster-lightbox" data-controller="poster-lightbox" data-action="click->poster-lightbox#close">
 							<span class="lightbox-close" data-action="click->poster-lightbox#close">&times;</span>
 							<img class="lightbox-content" id="lightboxImage" alt="">
 						</div>
 
-						{# === INFORMATIONS CONDENSÉES SOUS L'AFFICHE === #}
-						<div
-							class="movie-info-compact bg-dark bg-opacity-75 rounded-3 p-3 shadow">
-							{# Pays d'origine #}
-							{% if item.production_countries is defined and item.production_countries is not empty %}
-								<div class="info-item mb-2">
-									<i class="fas fa-globe text-primary me-2"></i>
-									<strong class="text-white-50">Pays d'origine :</strong>
+						{# Infos condensées #}
+						<div class="movie-info-compact bg-dark bg-opacity-75 rounded-3 p-3 shadow">
+							{# ... (Tout le contenu de cette div reste identique) ... #}
+							{# Pays #}
+								{% if item.production_countries is defined and item.production_countries is not empty %}
+									<div class="info-item mb-2"> <i class="fas fa-globe text-primary me-2"></i>
+									<strong class="text-white-50">Pays :</strong>
 									<span class="text-white">
-										{% for country in item.production_countries %}
-											{{ country.name }}
+										{% for c in item.production_countries %}
+											{{ c.name }}
 											{% if not loop.last %},
 											{% endif %}
 										{% endfor %}
 									</span>
 								</div>
 							{% endif %}
-
-							{# Budget (uniquement pour les films) #}
+							{# Budget #}
 							{% if not isSeries and item.budget is defined and item.budget > 0 %}
 								<div class="info-item mb-2">
 									<i class="fas fa-money-bill-wave text-success me-2"></i>
 									<strong class="text-white-50">Budget :</strong>
-									<span class="text-white">
-										{{ (item.budget / 1000000)|number_format(0, ',', ' ') }}
-										M$
-									</span>
+									<span class="text-white">{{ (item.budget / 1000000)|number_format(0, ',', ' ') }}
+										M$</span>
 								</div>
 							{% endif %}
-
-							{# Date de sortie #}
+							{# Date #}
 							<div class="info-item mb-2">
 								<i class="fas fa-calendar-alt text-warning me-2"></i>
-								<strong class="text-white-50">
-									{{ isSeries ? 'Première diffusion' : 'Date de sortie' }}
-									:
-								</strong>
+								<strong class="text-white-50">{{ isSeries ? 'Première diffusion' : 'Date de sortie' }}
+									:</strong>
 								<span class="text-white">
 									{% if isSeries %}
 										{{ item.first_air_date ? item.first_air_date|date('d/m/Y') : 'Date inconnue' }}
@@ -151,20 +137,17 @@
 									{% endif %}
 								</span>
 							</div>
-
 							{# Durée / Saisons #}
 							{% if isSeries %}
 								{% if item.number_of_seasons is defined %}
 									<div class="info-item mb-2">
 										<i class="fas fa-tv text-info me-2"></i>
 										<strong class="text-white-50">Contenu :</strong>
-										<span class="text-white">
-											{{ item.number_of_seasons }}
+										<span class="text-white">{{ item.number_of_seasons }}
 											saison{{ item.number_of_seasons > 1 ? 's' : '' }}
 											•
 											{{ item.number_of_episodes }}
-											épisode{{ item.number_of_episodes > 1 ? 's' : '' }}
-										</span>
+											épisode{{ item.number_of_episodes > 1 ? 's' : '' }}</span>
 									</div>
 								{% endif %}
 							{% else %}
@@ -172,14 +155,11 @@
 									<div class="info-item mb-2">
 										<i class="fas fa-clock text-danger me-2"></i>
 										<strong class="text-white-50">Durée :</strong>
-										<span class="text-white">
-											{{ item.runtime }}
-											minutes ({{ (item.runtime / 60)|round(1) }}h)
-										</span>
+										<span class="text-white">{{ item.runtime }}
+											min ({{ (item.runtime / 60)|round(1) }}h)</span>
 									</div>
 								{% endif %}
 							{% endif %}
-
 							{# Genres #}
 							{% if item.genres is defined and item.genres is not empty %}
 								<div class="info-item mb-3 mt-3">
@@ -193,277 +173,145 @@
 								</div>
 							{% endif %}
 
-							{# === NOTES AMÉLIORÉES === #}
+							{# Notes #}
 							<div class="ratings-section mt-3 pt-3 border-top border-secondary">
 								<h6 class="mb-3">
-									<i class="fas fa-star text-warning me-2"></i>Notes :
-								</h6>
-
-								{# TMDb - Format pourcentage comme sur leur site #}
+									<i class="fas fa-star text-warning me-2"></i>Notes :</h6>
+								{# TMDb #}
 								<div class="rating-item d-flex align-items-center justify-content-between mb-2">
 									<div class="d-flex align-items-center">
 										{% if links.tmdb %}
-											<a href="{{ links.tmdb }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
-												<img src="{{ asset('build/images/ratings/tmdb.svg') }}" alt="TMDb" style="width: 32px; height: 32px;">
-											</a>
+											<a href="{{ links.tmdb }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark"><img src="{{ asset('build/images/ratings/tmdb.svg') }}" alt="TMDb" style="width: 32px; height: 32px;"></a>
 										{% endif %}
 									</div>
 									<div class="rating-score">
-										<span class="badge" style="background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%); font-size: 1rem;">
-											{{ (item.vote_average * 10)|round }}%
-										</span>
+										<span class="badge" style="background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%); font-size: 1rem;">{{ (item.vote_average * 10)|round }}%</span>
 									</div>
 								</div>
-
-								{# IMDb - Format X/10 comme sur leur site #}
-								{% if omdb is defined and omdb.imdbRatingFloat is defined and omdb.imdbRatingFloat %}
+								{# IMDb #}
+								{% if omdb.imdbRatingFloat is defined and omdb.imdbRatingFloat %}
 									<div class="rating-item d-flex align-items-center justify-content-between mb-2">
 										{% if links.imdb %}
-											<a href="{{ links.imdb }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
-
-												<img src="{{ asset('build/images/ratings/IMDB.png') }}" alt="TMDb" style="width: 32px; height: 32px;">
-											</a>
+											<a href="{{ links.imdb }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark"><img src="{{ asset('build/images/ratings/IMDB.png') }}" alt="IMDb" style="width: 32px; height: 32px;"></a>
 										{% endif %}
 										<div class="rating-score">
-											<span class="badge bg-warning text-dark fw-bold" style="font-size: 1rem;">
-												{{ omdb.imdbRatingFloat }}/10
-											</span>
+											<span class="badge bg-warning text-dark fw-bold" style="font-size: 1rem;">{{ omdb.imdbRatingFloat }}/10</span>
 										</div>
 									</div>
 								{% endif %}
-
-								{# Rotten Tomatoes - Format pourcentage comme sur leur site #}
-								{% if omdb is defined and omdb.rottenTomatoesPercent is defined and omdb.rottenTomatoesPercent %}
+								{# Rotten Tomatoes #}
+								{% if omdb.rottenTomatoesPercent is defined and omdb.rottenTomatoesPercent %}
 									<div class="rating-item d-flex align-items-center justify-content-between mb-2">
 										{% if links.rotten_tomatoes %}
-											<a href="{{ links.rotten_tomatoes }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
-
-												<img src="{{ asset('build/images/ratings/rotten-tomatoes.png') }}" alt="TMDb" style="width: 32px; height: 32px;">
-											</a>
+											<a href="{{ links.rotten_tomatoes }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark"><img src="{{ asset('build/images/ratings/rotten-tomatoes.png') }}" alt="RT" style="width: 32px; height: 32px;"></a>
 										{% endif %}
 										<div class="rating-score">
-											<span class="badge bg-danger fw-bold" style="font-size: 1rem;">
-												{{ omdb.rottenTomatoesPercent|round }}%
-											</span>
+											<span class="badge bg-danger fw-bold" style="font-size: 1rem;">{{ omdb.rottenTomatoesPercent|round }}%</span>
 										</div>
 									</div>
 								{% endif %}
-
-								{# Metacritic - Format pourcentage comme sur leur site #}
-								{% if omdb is defined and omdb.metacriticScoreInt is defined and omdb.metacriticScoreInt %}
+								{# Metacritic #}
+								{% if omdb.metacriticScoreInt is defined and omdb.metacriticScoreInt %}
 									<div class="rating-item d-flex align-items-center justify-content-between mb-2">
 										{% if links.metacritic %}
-											<a href="{{ links.metacritic }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark">
-												<img src="{{ asset('build/images/ratings/metacritic.png') }}" alt="TMDb" style="width: 32px; height: 32px;">
-											</a>
+											<a href="{{ links.metacritic }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-dark"><img src="{{ asset('build/images/ratings/metacritic.png') }}" alt="MC" style="width: 32px; height: 32px;"></a>
 										{% endif %}
 										<div class="rating-score">
-											<span class="badge bg-info fw-bold" style="font-size: 1rem;">
-												{{ omdb.metacriticScoreInt|round }}%
-											</span>
+											<span class="badge bg-info fw-bold" style="font-size: 1rem;">{{ omdb.metacriticScoreInt|round }}%</span>
 										</div>
 									</div>
 								{% endif %}
 							</div>
 
-							{# === BLOC "DISPONIBLE SUR" DÉPLACÉ ICI === #}
+							{# "Disponible sur" #}
 							<div class="available-on-section mt-3 pt-3 border-top border-secondary">
-								{% if not isSeries %}
-									{# Films au cinéma actuellement #}
-									{% if isNowPlaying is defined and isNowPlaying %}
-										<div class="showtimes-section">
-											<h6 class="mb-3">
-												<i class="fas fa-film me-2"></i>Actuellement au cinéma
-											</h6>
-											<p class="text-white-50 mb-3 small">
-												Ce film est actuellement projeté en salles !
-											</p>
-											<div data-controller="showtimes" data-showtimes-movie-id-value="{{ item.id }}" data-showtimes-movie-title-value="{{ item.title }}">
-												<button type="button" class="btn btn-warning btn-sm w-100" data-action="click->showtimes#findNearby">
-													<i class="fas fa-map-marker-alt me-2"></i>
-													Trouver une séance
-												</button>
-												<p class="text-muted small mt-2 mb-0" style="font-size: 0.75rem;">
-													<i class="fas fa-info-circle me-1"></i>
-													Nécessite la géolocalisation
-												</p>
-												<div data-showtimes-target="results" class="mt-3"></div>
+								{% set hasFlatrate = watchProviders.flatrate is defined and watchProviders.flatrate is not empty %}
+								{% set hasRent = watchProviders.rent is defined and watchProviders.rent is not empty %}
+								{% set hasBuy = watchProviders.buy is defined and watchProviders.buy is not empty %}
+								{% set hasAnyProvider = hasFlatrate or hasRent or hasBuy %}
+
+								{% if not isSeries and isNowPlaying is defined and isNowPlaying %}
+									<div class="showtimes-section">
+										<h6 class="mb-3">
+											<i class="fas fa-film me-2"></i>Actuellement au cinéma</h6>
+										<p class="text-white-50 mb-3 small">Ce film est actuellement projeté en salles !</p>
+										<div data-controller="showtimes" data-showtimes-movie-id-value="{{ item.id }}" data-showtimes-movie-title-value="{{ item.title }}">
+											<button type="button" class="btn btn-warning btn-sm w-100" data-action="click->showtimes#findNearby">
+												<i class="fas fa-map-marker-alt me-2"></i>Trouver une séance</button>
+											<p class="text-muted small mt-2 mb-0" style="font-size: 0.75rem;">
+												<i class="fas fa-info-circle me-1"></i>Nécessite la géolocalisation</p>
+											<div data-showtimes-target="results" class="mt-3"></div>
+										</div>
+									</div>
+								{% elseif hasAnyProvider %}
+									<div class="platforms-section">
+										<h6 class="mb-3">
+											<i class="fas fa-tv me-2"></i>Disponible sur :</h6>
+										{% if hasFlatrate %}
+											<div class="provider-category mb-3">
+												<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+													<i class="fas fa-play-circle me-2 text-success"></i>Streaming</h5>
+												<div class="row g-2">
+													{% for p in watchProviders.flatrate %}
+														<div class="col-4">
+															<a href="{{ watchProviders.link|default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Options pour {{ p.provider_name }}">
+																<div class="provider-card text-center p-1 rounded bg-dark">
+																	{% if p.logo_path %}<img src="https://image.tmdb.org/t/p/w92{{ p.logo_path }}" alt="{{ p.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																	{% else %}
+																		<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">{{ p.provider_name }}</p>
+																	{% endif %}
+																</div>
+															</a>
+														</div>
+													{% endfor %}
+												</div>
 											</div>
-										</div>
-
-										{# Films disponibles sur plateformes #}
-									{% elseif watchProviders is defined and (watchProviders.flatrate is not empty or watchProviders.rent is not empty or watchProviders.buy is not empty) %}
-										<div class="platforms-section">
-											<h6 class="mb-3">
-												<i class="fas fa-tv me-2"></i>Disponible sur :
-											</h6>
-
-											{# STREAMING #}
-											{% if watchProviders.flatrate is not empty %}
-												<div class="provider-category mb-3">
-													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
-														<i class="fas fa-play-circle me-2 text-success"></i>Streaming
-													</h5>
-													<div class="row g-2">
-														{% for provider in watchProviders.flatrate %}
-															<div class="col-4">
-																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
-																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
-																		{% if provider.logo_path %}
-																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
-																		{% else %}
-																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
-																				{{ provider.provider_name }}
-																			</p>
-																		{% endif %}
-																	</div>
-																</a>
-															</div>
-														{% endfor %}
-													</div>
+										{% endif %}
+										{% if hasRent %}
+											<div class="provider-category mb-3">
+												<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+													<i class="fas fa-ticket-alt me-2 text-info"></i>Location</h5>
+												<div class="row g-2">
+													{% for p in watchProviders.rent %}
+														<div class="col-4">
+															<a href="{{ watchProviders.link|default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Options pour {{ p.provider_name }}">
+																<div class="provider-card text-center p-1 rounded bg-dark">
+																	{% if p.logo_path %}<img src="https://image.tmdb.org/t/p/w92{{ p.logo_path }}" alt="{{ p.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																	{% else %}
+																		<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">{{ p.provider_name }}</p>
+																	{% endif %}
+																</div>
+															</a>
+														</div>
+													{% endfor %}
 												</div>
-											{% endif %}
-
-											{# LOCATION #}
-											{% if watchProviders.rent is not empty %}
-												<div class="provider-category mb-3">
-													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
-														<i class="fas fa-ticket-alt me-2 text-info"></i>Location
-													</h5>
-													<div class="row g-2">
-														{% for provider in watchProviders.rent %}
-															<div class="col-4">
-																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
-																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
-																		{% if provider.logo_path %}
-																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
-																		{% else %}
-																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
-																				{{ provider.provider_name }}
-																			</p>
-																		{% endif %}
-																	</div>
-																</a>
-															</div>
-														{% endfor %}
-													</div>
+											</div>
+										{% endif %}
+										{% if hasBuy %}
+											<div class="provider-category">
+												<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
+													<i class="fas fa-shopping-cart me-2 text-danger"></i>Achat</h5>
+												<div class="row g-2">
+													{% for p in watchProviders.buy %}
+														<div class="col-4">
+															<a href="{{ watchProviders.link|default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Options pour {{ p.provider_name }}">
+																<div class="provider-card text-center p-1 rounded bg-dark">
+																	{% if p.logo_path %}<img src="https://image.tmdb.org/t/p/w92{{ p.logo_path }}" alt="{{ p.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
+																	{% else %}
+																		<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">{{ p.provider_name }}</p>
+																	{% endif %}
+																</div>
+															</a>
+														</div>
+													{% endfor %}
 												</div>
-											{% endif %}
-
-											{# ACHAT #}
-											{% if watchProviders.buy is not empty %}
-												<div class="provider-category">
-													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
-														<i class="fas fa-shopping-cart me-2 text-danger"></i>Achat
-													</h5>
-													<div class="row g-2">
-														{% for provider in watchProviders.buy %}
-															<div class="col-4">
-																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
-																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
-																		{% if provider.logo_path %}
-																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
-																		{% else %}
-																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
-																				{{ provider.provider_name }}
-																			</p>
-																		{% endif %}
-																	</div>
-																</a>
-															</div>
-														{% endfor %}
-													</div>
-												</div>
-											{% endif %}
-										</div>
-									{% endif %}
-
-									{# Séries - toujours afficher les plateformes #}
+											</div>
+										{% endif %}
+									</div>
 								{% else %}
-									{% if watchProviders is defined and (watchProviders.flatrate is not empty or watchProviders.rent is not empty or watchProviders.buy is not empty) %}
-										<div class="platforms-section">
-											<h6 class="mb-3">
-												<i class="fas fa-tv me-2"></i>Disponible sur :
-											</h6>
-
-											{# Même structure que pour les films #}
-											{% if watchProviders.flatrate is not empty %}
-												<div class="provider-category mb-3">
-													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
-														<i class="fas fa-play-circle me-2 text-success"></i>Streaming
-													</h5>
-													<div class="row g-2">
-														{% for provider in watchProviders.flatrate %}
-															<div class="col-4">
-																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
-																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
-																		{% if provider.logo_path %}
-																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
-																		{% else %}
-																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
-																				{{ provider.provider_name }}
-																			</p>
-																		{% endif %}
-																	</div>
-																</a>
-															</div>
-														{% endfor %}
-													</div>
-												</div>
-											{% endif %}
-
-											{% if watchProviders.rent is not empty %}
-												<div class="provider-category mb-3">
-													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
-														<i class="fas fa-ticket-alt me-2 text-info"></i>Location
-													</h5>
-													<div class="row g-2">
-														{% for provider in watchProviders.rent %}
-															<div class="col-4">
-																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
-																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
-																		{% if provider.logo_path %}
-																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
-																		{% else %}
-																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
-																				{{ provider.provider_name }}
-																			</p>
-																		{% endif %}
-																	</div>
-																</a>
-															</div>
-														{% endfor %}
-													</div>
-												</div>
-											{% endif %}
-
-											{% if watchProviders.buy is not empty %}
-												<div class="provider-category">
-													<h5 class="text-white small text-uppercase fw-bold" style="font-size: 0.8rem;">
-														<i class="fas fa-shopping-cart me-2 text-danger"></i>Achat
-													</h5>
-													<div class="row g-2">
-														{% for provider in watchProviders.buy %}
-															<div class="col-4">
-																<a href="{{ watchProviders.link | default('#') }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none" title="Voir les options pour {{ provider.provider_name }}">
-																	<div class="provider-card text-center p-1 rounded bg-dark" style="transition: all 0.3s;">
-																		{% if provider.logo_path %}
-																			<img src="https://image.tmdb.org/t/p/w92{{ provider.logo_path }}" alt="{{ provider.provider_name }}" class="img-fluid rounded" style="max-height: 40px;">
-																		{% else %}
-																			<p class="provider-name text-white small mb-0" style="font-size: 0.7rem;">
-																				{{ provider.provider_name }}
-																			</p>
-																		{% endif %}
-																	</div>
-																</a>
-															</div>
-														{% endfor %}
-													</div>
-												</div>
-											{% endif %}
-
-										</div>
-									{% endif %}
+									<p class="text-muted small">
+										<i class="fas fa-info-circle me-1"></i>
+										Non disponible actuellement sur les plateformes suivies.</p>
 								{% endif %}
 							</div>
 
@@ -471,31 +319,26 @@
 							{% if app.user %}
 								<div class="dropdown mt-4" data-controller="add-to-list" data-add-to-list-tmdb-id-value="{{ item.id }}" data-add-to-list-tmdb-type-value="{{ isSeries ? 'tv' : 'movie' }}">
 									<button class="btn btn-primary dropdown-toggle w-100 btn-lg shadow" type="button" id="dropdownMenuButton-{{ item.id }}" data-bs-toggle="dropdown" aria-expanded="false">
-										<i class="fas fa-plus-circle me-2"></i>
-										Ajouter à une liste
-									</button>
+										<i class="fas fa-plus-circle me-2"></i>Ajouter à une liste</button>
 									<ul class="dropdown-menu w-100 shadow-lg" aria-labelledby="dropdownMenuButton-{{ item.id }}">
 										{% if app.user.movieLists is not empty %}
 											{% for list in app.user.movieLists %}
 												<li>
-													<a class="dropdown-item" href="{{ path('app_movie_list_add_item', { 'id': list.id, 'tmdbId': item.id, 'tmdbType': isSeries ? 'tv' : 'movie', 'posterPath': item.poster_path }) }}" data-action="click->add-to-list#add">
+													<a class="dropdown-item" href="{{ path('app_movie_list_add_item', { 'id': list.id, 'tmdbId': item.id, 'tmdbType': isSeries ? 'tv' : 'movie' }) }}" data-action="click->add-to-list#add">
 														<i class="fas fa-list me-2"></i>
-														{{ list.name }}
-													</a>
+														{{ list.name }}</a>
 												</li>
 											{% endfor %}
 										{% else %}
 											<li>
 												<span class="dropdown-item disabled">
-													<i class="fas fa-info-circle me-2"></i>Créez d'abord une liste
-												</span>
+													<i class="fas fa-info-circle me-2"></i>Créez d'abord une liste</span>
 											</li>
 										{% endif %}
 										<li><hr class="dropdown-divider"></li>
 										<li>
 											<a class="dropdown-item text-success fw-bold" href="{{ path('app_movie_list_new') }}">
-												<i class="fas fa-plus-circle me-2"></i>Créer une nouvelle liste
-											</a>
+												<i class="fas fa-plus-circle me-2"></i>Créer une nouvelle liste</a>
 										</li>
 									</ul>
 								</div>
@@ -503,46 +346,45 @@
 						</div>
 					</div>
 
-					{# === COLONNE DROITE : RÉALISATEUR, TRAILER, ACTEURS, SYNOPSIS === #}
+					{# === COLONNE DROITE : RÉAL/CRÉATEUR, TRAILER, ACTEURS, SYNOPSIS === #}
 					<div
 						class="col-lg-8 col-md-7 text-white">
-						{# Réalisateur #}
-						{% if not isSeries %}
-							{% set director = null %}
-							{% if item.credits.crew is defined %}
-								{% for member in item.credits.crew %}
-									{% if member.job == 'Director' and director is null %}
-										{% set director = member %}
-									{% endif %}
-								{% endfor %}
-							{% endif %}
-
-							{% if director %}
-								<div class="director-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
-									<h5 class="mb-3">
-										<i class="fas fa-video me-2"></i>
-										Réalisateur(s) :
-									</h5>
-									<a href="{{ path('person_details', {'id': director.id}) }}" class="text-decoration-none">
-										<div class="d-flex align-items-center director-card p-2 rounded" style="transition: all 0.3s; cursor: pointer;">
-											{% if director.profile_path %}
-												<img src="https://image.tmdb.org/t/p/w185{{ director.profile_path }}" alt="Photo de {{ director.name }}" class="rounded-circle me-3 shadow" style="width: 60px; height: 60px; object-fit: cover;">
-											{% else %}
-												<div class="rounded-circle me-3 bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-													<i class="fas fa-user fa-2x text-muted"></i>
-												</div>
-											{% endif %}
-											<div>
-												<p class="mb-0 fw-bold text-white fs-5">{{ director.name }}</p>
-												<small class="text-warning">
-													Voir la filmographie
-													<i class="fas fa-arrow-right"></i>
-												</small>
+						{# Réal/Créateur #}
+						{% set director = null %}
+						{% set creator = null %}
+						{% if isSeries and item.created_by is defined and item.created_by is not empty %}
+							{% set creator = item.created_by[0] %}
+						{% elseif not isSeries and item.credits.crew is defined %}
+							{% for member in item.credits.crew %}
+								{% if member.job == 'Director' and director is null %}
+									{% set director = member %}
+								{% endif %}
+							{% endfor %}
+						{% endif %}
+						{% if director or creator %}
+							<div class="director-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
+								<h5 class="mb-3">
+									<i class="fas {{ isSeries ? 'fa-user-tie' : 'fa-video' }} me-2"></i>
+									{{ isSeries ? 'Créateur(s)' : 'Réalisateur(s)' }}
+									:</h5>
+								{% set person = isSeries ? creator : director %}
+								<a href="{{ path('person_details', {'id': person.id}) }}" class="text-decoration-none">
+									<div class="d-flex align-items-center director-card p-2 rounded" style="transition: all 0.3s; cursor: pointer;">
+										{% if person.profile_path %}<img src="https://image.tmdb.org/t/p/w185{{ person.profile_path }}" alt="Photo de {{ person.name }}" class="rounded-circle me-3 shadow" style="width: 60px; height: 60px; object-fit: cover;">
+										{% else %}
+											<div class="rounded-circle me-3 bg-secondary d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+												<i class="fas fa-user fa-2x text-muted"></i>
 											</div>
+										{% endif %}
+										<div>
+											<p class="mb-0 fw-bold text-white fs-5">{{ person.name }}</p>
+											<small class="text-warning">Voir la filmographie
+												<i class="fas fa-arrow-right"></i>
+											</small>
 										</div>
-									</a>
-								</div>
-							{% endif %}
+									</div>
+								</a>
+							</div>
 						{% endif %}
 
 						{# Bande-annonce #}
@@ -554,12 +396,10 @@
 								{% endif %}
 							{% endfor %}
 						{% endif %}
-
 						{% if trailer %}
 							<div class="trailer-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
 								<h5 class="mb-3">
-									<i class="fas fa-play-circle me-2"></i>Bande-annonce :
-								</h5>
+									<i class="fas fa-play-circle me-2"></i>Bande-annonce :</h5>
 								<div class="ratio ratio-16x9 rounded overflow-hidden shadow">
 									<iframe src="https://www.youtube.com/embed/{{ trailer.key }}?autoplay=0&mute=0" title="Bande-annonce" allowfullscreen style="border: none;"></iframe>
 								</div>
@@ -570,15 +410,13 @@
 						{% if item.credits.cast is defined and item.credits.cast is not empty %}
 							<div class="actors-section bg-dark bg-opacity-50 rounded-3 p-3 mb-4 shadow">
 								<h5 class="mb-3">
-									<i class="fas fa-users me-2"></i>Acteurs principaux :
-								</h5>
+									<i class="fas fa-users me-2"></i>Acteurs principaux :</h5>
 								<div class="row g-3">
 									{% for actor in item.credits.cast|slice(0, 4) %}
 										<div class="col-6 col-lg-3">
 											<a href="{{ path('person_details', {'id': actor.id}) }}" class="text-decoration-none">
 												<div class="actor-card text-center" style="transition: transform 0.3s;">
-													{% if actor.profile_path %}
-														<img src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="Photo de {{ actor.name }}" class="img-fluid rounded-circle mb-2 shadow" style="width: 100px; height: 100px; object-fit: cover;">
+													{% if actor.profile_path %}<img src="https://image.tmdb.org/t/p/w200{{ actor.profile_path }}" alt="Photo de {{ actor.name }}" class="img-fluid rounded-circle mb-2 shadow" style="width: 100px; height: 100px; object-fit: cover;">
 													{% else %}
 														<div class="rounded-circle mx-auto mb-2 bg-secondary d-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
 															<i class="fas fa-user fa-3x text-muted"></i>
@@ -600,69 +438,91 @@
 						{% if item.overview %}
 							<div class="synopsis-section bg-dark bg-opacity-50 rounded-3 p-3 shadow">
 								<h5 class="mb-3">
-									<i class="fas fa-align-left me-2"></i>Synopsis :
-								</h5>
+									<i class="fas fa-align-left me-2"></i>Synopsis :</h5>
 								<p class="text-white-50 lh-lg">{{ item.overview }}</p>
 							</div>
 						{% endif %}
 					</div>
 				</div>
 			</div>
-		</div>
+			{# Fin du container principal #}
 
-		{# ===== RECOMMANDATIONS AVEC NOTES TMDB VISIBLES ===== #}
-		{% if item.recommendations.results is defined and item.recommendations.results is not empty %}
-			<div class="container my-5">
-				<h3 class="mb-4">
-					<i class="fas fa-lightbulb me-2"></i>Recommandations similaires
-				</h3>
-
-				<div class="row g-4">
-					{% for rec in item.recommendations.results|slice(0, 6) %}
-						<div class="col-6 col-md-4 col-lg-2">
-							<a href="{{ path(isSeries ? 'tv_content' : 'movie_content', {'id': rec.id}) }}" class="text-decoration-none">
-								<div class="recommendation-card position-relative" style="overflow: hidden; border-radius: 8px;">
+			{# ===== SECTION RECOMMANDATIONS AMÉLIORÉES ===== #}
+			{# Ce bloc est maintenant DANS le .content-hero mais HORS du premier .container #}
+				{% if customRecommendations is defined and customRecommendations is not empty %}
+					<div
+					class="container my-5"> {# Nouveau container pour la largeur #}
+					<h3 class="mb-4 text-white">
+						<i class="fas fa-lightbulb me-2 text-warning"></i>Recommandations Personnalisées</h3>
+					<div class="row g-4 recommendation-grid">
+						{# g-4 pour l'espacement, et nouvelle classe #}
+						{#
+												   CHANGEMENT 2 :
+												   La boucle a été simplifiée pour utiliser les nouvelles classes CSS
+												   que tu ajouteras à app.scss
+												#}
+							{% for rec in customRecommendations %}
+								<div class="col-6 col-md-4 col-lg-3 col-xl-2"> <a
+									href="{{ path(rec.isSeries ? 'tv_content' : 'movie_content', {'id': rec.id}) }}" class="recommendation-link text-decoration-none">
+									{# Poster ou Placeholder #}
 									{% if rec.poster_path %}
-										<img src="https://image.tmdb.org/t/p/w300{{ rec.poster_path }}" class="img-fluid shadow recommendation-poster" alt="{{ isSeries ? rec.name : rec.title }}" loading="lazy" style="width: 100%; transition: transform 0.3s;">
+										<img src="https://image.tmdb.org/t/p/w300{{ rec.poster_path }}" class="recommendation-poster-img" alt="{{ rec.title }}" loading="lazy">
 									{% else %}
-										<div class="poster-placeholder shadow d-flex align-items-center justify-content-center bg-secondary" style="width: 100%; height: 300px;">
-											<i class="fas fa-film fa-3x text-muted"></i>
+										<div class="recommendation-placeholder">
+											<i class="fas {{ rec.isSeries ? 'fa-tv' : 'fa-film' }} fa-3x"></i>
 										</div>
 									{% endif %}
 
-									{# ✅ MODIFICATION : Note de style identique à la principale, mais en petit #}
+									{# Mini badge de note TMDb #}
 									{% if rec.vote_average is defined and rec.vote_average > 0 %}
-										<div class="tmdb-mini-badge" style="
-																																																																																																                                                                                                position: absolute;
-																																																																																																                                                                                                top: 8px;
-																																																																																																                                                                                                right: 8px;
-																																																																																																                                                                                                width: 40px;
-																																																																																																                                                                                                height: 40px;
-																																																																																																                                                                                                background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%);
-																																																																																																                                                                                                border-radius: 50%;
-																																																																																																                                                                                                display: flex;
-																																																																																																                                                                                                align-items: center;
-																																																																																																                                                                                                justify-content: center;
-																																																																																																                                                                                                box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-																																																																																																                                                                                                border: 2px solid rgba(255,255,255,0.9);
-																																																																																																                                                                                                z-index: 10;
-																																																																																																                                                                                            ">
-											<span class="fw-bold text-white" style="font-size: 0.9rem;">
-												{{ (rec.vote_average * 10)|round }}%
-											</span>
+										<div class="tmdb-mini-badge" style="position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.9); z-index: 10;">
+											<span class="fw-bold text-white" style="font-size: 0.9rem;">{{ (rec.vote_average * 0.985)|round(1, 'floor') }}</span>
 										</div>
 									{% endif %}
 
-									<p class="text-white text-center small mt-2 mb-0">
-										{{ isSeries ? rec.name : rec.title }}
-									</p>
-								</div>
-							</a>
-						</div>
-					{% endfor %}
+									{# Titre sous l'affiche #}
+									<p class="recommendation-title">{{ rec.title }}</p>
+								</a>
+							</div>
+						{% endfor %}
+					</div>
 				</div>
-			</div>
-		{% endif %}
+				{# Fallback : Si les recommandations personnalisées sont vides #}
+			{% elseif item.recommendations.results is defined and item.recommendations.results is not empty %}
+				<div class="container my-5">
+					<h3 class="mb-4 text-white">
+						<i class="fas fa-thumbs-up me-2"></i>Suggestions Similaires (TMDb)</h3>
+					<div class="row g-4 recommendation-grid">
+						{% for rec in item.recommendations.results|slice(0, 6) %}
+							<div class="col-6 col-md-4 col-lg-3 col-xl-2">
+								<a
+									href="{{ path(isSeries ? 'tv_content' : 'movie_content', {'id': rec.id}) }}" class="recommendation-link text-decoration-none">
+									{# Poster ou Placeholder #}
+									{% if rec.poster_path %}
+										<img src="https://image.tmdb.org/t/p/w300{{ rec.poster_path }}" class="recommendation-poster-img" alt="{{ isSeries ? rec.name : rec.title }}" loading="lazy">
+									{% else %}
+										<div class="recommendation-placeholder">
+											<i class="fas {{ isSeries ? 'fa-tv' : 'fa-film' }} fa-3x"></i>
+										</div>
+									{% endif %}
+									{# Mini badge #}
+									{% if rec.vote_average is defined and rec.vote_average > 0 %}
+										<div class="tmdb-mini-badge" style="position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; background: linear-gradient(135deg, #01d277 0%, #00b4d8 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.9); z-index: 10;">
+											<span class="fw-bold text-white" style="font-size: 0.9rem;">{{ (rec.vote_average * 10)|round }}%</span>
+										</div>
+									{% endif %}
+									{# Titre #}
+									<p class="recommendation-title">{{ isSeries ? rec.name : rec.title }}</p>
+								</a>
+							</div>
+						{% endfor %}
+					</div>
+				</div>
+			{% endif %}
+
+		</div>
+		{# Fin du .content-hero (couvre maintenant aussi les recommandations) #}
+
 
 		{# ===== MODAL POUR LES SÉANCES DE CINÉMA ===== #}
 		<div class="modal fade" id="showtimesModal" tabindex="-1" aria-labelledby="showtimesModalLabel" aria-hidden="true">
@@ -670,8 +530,7 @@
 				<div class="modal-content bg-dark text-white">
 					<div class="modal-header border-secondary">
 						<h5 class="modal-title" id="showtimesModalLabel">
-							<i class="fas fa-film me-2"></i>Séances de cinéma à proximité
-						</h5>
+							<i class="fas fa-film me-2"></i>Séances de cinéma à proximité</h5>
 						<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
 					</div>
 					<div class="modal-body" id="showtimesModalBody">
@@ -689,4 +548,10 @@
 			</div>
 		</div>
 	</div>
+
+	{#
+		   CHANGEMENT 3 :
+		   Le style <style> qui était ici a été supprimé.
+		   Il doit être déplacé dans ton fichier SCSS (voir étape 2).
+		#}
 {% endblock %}

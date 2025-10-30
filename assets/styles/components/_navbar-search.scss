@@ -1,0 +1,66 @@
+// assets/styles/components/_navbar-search.scss
+
+// Conteneur principal du module de recherche (qui porte le data-controller)
+.search-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    .search-icon {
+        cursor: pointer;
+        transition: color 0.2s ease;
+        padding: 0.5rem; // Agrandit la zone de clic
+
+        &:hover {
+            color: $primary-color; // Utilise ta variable $primary-color
+        }
+    }
+
+    .search-form {
+        // Caché par défaut sur grand écran
+        width: 0;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-out;
+        overflow: hidden;
+
+        .form-control {
+            width: 250px; // Largeur fixe quand il apparaît
+        }
+    }
+
+    // --- État Actif ---
+    // Quand le conteneur a la classe .active (ajoutée par Stimulus)
+    &.active {
+        .search-form {
+            width: 250px; // La largeur que tu veux
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-icon {
+            color: $primary-color;
+        }
+    }
+
+    // --- Responsive (Mobile) ---
+    // Correspond au point de rupture 'lg' de Bootstrap
+    @media (max-width: 991.98px) {
+        // Sur mobile, on affiche toujours le formulaire
+        .search-form {
+            width: 100%;
+            opacity: 1;
+            visibility: visible;
+            margin-top: 0.5rem;
+
+            .form-control {
+                width: 100%;
+            }
+        }
+
+        // Et on cache l'icône loupe qui ne sert plus
+        .search-icon {
+            display: none;
+        }
+    }
+}

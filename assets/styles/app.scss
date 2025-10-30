@@ -15,6 +15,7 @@
 @import "components/modal-modern";
 @import "components/navbar-dropdown";
 @import "components/_toasts-animations.scss";
+@import "components/navbar-search";
 
 // =============================================================================
 // VARIABLES PERSONNALISÉES
@@ -57,7 +58,7 @@ $turquoise-animated-gradient: linear-gradient(
 // Typographie
 $font-title: "Righteous", sans-serif !default;
 $font-body: "Vollkorn", serif !default;
-$font-title-h1: "Luckiest Guy", cursive !default;
+$font-h1: "Luckiest Guy", cursive !default;
 
 // Transitions
 $transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -99,7 +100,7 @@ body {
 body {
     overflow-x: hidden;
     color: $primary-text-color;
-    font-family: $font-body;
+    font-family: $font-h1;
     line-height: 1.6;
     min-height: 100vh; // ✅ ESSENTIEL
     display: flex; // ✅ ESSENTIEL
@@ -154,7 +155,7 @@ main {
 
 // Base commune pour tous les titres animés
 %animated-title-base {
-    font-family: $font-title;
+    font-family: $font-h1;
     margin-bottom: 1rem;
     margin-top: 1.5rem;
     background-size: 250% auto;
@@ -196,18 +197,38 @@ h4 {
     background-size: 300% 300% !important;
     animation: gradient-animation 15s ease-in-out infinite !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: $font-h1;
 }
 
 h5,
 h6 {
     text-decoration: underline $primary-color;
+    font-family: $font-h1;
+}
+
+p {
+    font-family: $font-h1;
+    color: $primary-text-color;
+}
+
+.fas {
+    color: $primary-text-color;
+}
+
+.fa-light,
+.fa-video {
+    color: black !important;
+}
+
+.fa-users {
+    color: purple;
 }
 
 // Titres Display avec dégradé ORANGE (clip sur texte)
 .hero-title-text,
 .btn-go {
     // Style de base
-    font-family: $font-title-h1 !important;
+    font-family: $font-h1 !important;
     font-size: clamp(2rem, 6vw, 4rem);
     display: inline-block;
 
@@ -231,12 +252,13 @@ h6,
     color: $title-color !important;
     vertical-align: center;
     text-align: center;
+    font-family: $font-h1;
 }
 
 // Ajustements spécifiques
 .main-title {
     font-size: clamp(2rem, 5vw, 3.5rem);
-    font-family: $font-title-h1;
+    font-family: $font-h1;
     margin-bottom: 1em;
     margin-top: 1em;
     vertical-align: text-top !important;
@@ -256,12 +278,8 @@ h6,
 .hero-subtitle {
     font-size: clamp(1.5rem, 5vw, 2.5rem);
     margin-top: -10px;
-    background: $turquoise-animated-gradient;
-    background-size: 300% 300%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradient-animation 15s ease-in-out infinite;
+    color: $title-color;
+    background: none;
 }
 
 .tmdb {
@@ -402,9 +420,10 @@ p {
     background-size: 300% 300%;
     animation: gradient-animation 15s ease-in-out infinite;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-family: $font-h1;
 
     .navbar-brand {
-        font-family: $font-title-h1;
+        font-family: $font-h1;
         color: $primary-background-color;
         font-size: 1.5rem;
         transition: $transition-fast;
@@ -523,7 +542,7 @@ p {
 // =============================================================================
 
 .btn {
-    font-family: $font-title;
+    font-family: $font-h1;
     font-weight: 500;
     border-radius: 8px;
     padding: 0.6rem 1.5rem;
@@ -686,7 +705,7 @@ p {
         padding: 1.5rem;
 
         .modal-title {
-            font-family: $font-title;
+            font-family: $font-h1;
             font-size: 1.5rem;
             font-weight: 600;
             text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
@@ -737,7 +756,7 @@ p {
     backdrop-filter: blur(5px);
     border: none;
     padding: 1.25rem 1.5rem;
-    font-family: $font-body;
+    //font-family: $font-body;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     margin-bottom: 1.5rem;
     position: relative;
@@ -828,7 +847,7 @@ p {
     }
 
     .alert-heading {
-        font-family: $font-title;
+        font-family: $font-h1;
         font-weight: 600;
         margin-bottom: 0.75rem;
     }
@@ -956,7 +975,7 @@ p {
 
 .btn-go {
     font-size: 1.8rem;
-    font-family: $font-title;
+    font-family: $font-h1;
     border: none;
     padding: 0.75rem 2rem;
     border-radius: 8px;
@@ -1135,7 +1154,7 @@ p {
     color: white;
     padding: 20px 10px 10px;
     text-align: center;
-    font-family: $font-title;
+    font-family: $font-h1;
     font-size: 1.2rem;
     pointer-events: none;
 }
@@ -1190,12 +1209,10 @@ p {
             rgba(0, 0, 0, 0.95) 10%,
             rgba(0, 0, 0, 0) 100%
         );
-        color: white;
         padding: 2.5rem 1.25rem 1.25rem;
 
         h5 {
-            color: white;
-            font-family: $font-title;
+            font-family: $font-h1;
             font-size: 1.4rem;
             margin: 0;
         }
@@ -1229,7 +1246,7 @@ p {
         align-items: center;
         justify-content: center;
         font-weight: bold;
-        font-family: $font-title;
+        font-family: $font-h1;
         font-size: 1.3rem;
         border: 3px solid white;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
@@ -1237,6 +1254,7 @@ p {
 
     .card-title {
         text-decoration: underline 2px $primary-color;
+        color: $title-color;
     }
 }
 
@@ -1477,7 +1495,7 @@ p {
     align-items: center;
     justify-content: center;
     font-weight: bold;
-    font-family: $font-title;
+    font-family: $font-h1;
     font-size: 1.6rem;
     border: 4px solid white;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
@@ -3089,6 +3107,10 @@ a:hover .actor-name {
     box-shadow: #000 0px 0px 10px;
 }
 
+.meta {
+    background-color: #00ce7a;
+}
+
 .rating-logo-img.metacritic-logo-img {
     width: 100%;
     height: 100%;
@@ -3386,5 +3408,62 @@ a:hover .actor-name {
     .wtw-badge:hover {
         background: rgba(0, 0, 0, 0.8);
         border-color: rgba(255, 255, 255, 0.25);
+    }
+}
+
+// =============================================================================
+// STYLES POUR LA GRILLE DE RECOMMANDATIONS (content.html.twig)
+// =============================================================================
+
+.recommendation-grid {
+
+    .recommendation-link {
+        display: block;
+        text-decoration: none;
+        border-radius: 8px; // Bords arrondis
+        overflow: hidden; // Pour que l'image respecte les bords
+        transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+        position: relative; // Pour les badges
+
+        // Fond sombre pour les placeholders (pas pour les affiches)
+        background-color: #222;
+
+        // C'est LA clé pour la taille uniforme : 2/3 ratio
+        // L'affiche remplira cet espace.
+        aspect-ratio: 2 / 3;
+
+        &:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+    }
+
+    .recommendation-poster-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; // Fait en sorte que l'image remplisse le ratio 2/3
+        transition: transform 0.3s ease;
+    }
+
+    .recommendation-placeholder {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #555; // Couleur de l'icône placeholder
+    }
+
+    .recommendation-title {
+        color: #fff;
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-align: center;
+        margin-top: 0.5rem; // Espace entre l'affiche et le titre
+        white-space: nowrap; // Empêche le titre de passer à la ligne
+        overflow: hidden;
+        text-overflow: ellipsis; // Ajoute "..." si le titre est trop long
+        max-width: 100%;
+        padding: 0 4px; // Petit padding horizontal
     }
 }

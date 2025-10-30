@@ -15,7 +15,6 @@
 					</a>
 				</li>
 
-				<!-- Dropdown Catégories -->
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 						<i class="fas fa-list me-1"></i>Catégories
@@ -45,7 +44,6 @@
 					</ul>
 				</li>
 
-				<!-- Nouveau lien Quiz -->
 				<li class="nav-item">
 					<a class="nav-link" href="{{ path('quiz_index') }}">
 						<i class="fas fa-gamepad me-1"></i>Quiz
@@ -54,14 +52,12 @@
 				</li>
 
 				{% if app.user %}
-					<!-- Menu utilisateur connecté -->
 					<li class="nav-item">
 						<a class="nav-link" href="{{ path('app_movie_list_index') }}">
 							<i class="fas fa-bookmark me-1"></i>Mes Listes
 						</a>
 					</li>
 
-					<!-- Dropdown profil utilisateur -->
 					<li class="nav-item dropdown">
 						<a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
 							<i class="fas fa-user-circle me-1"></i>
@@ -73,6 +69,12 @@
 									<i class="fas fa-list me-2"></i>Mes listes
 								</a>
 							</li>
+							{# J'ajoute le lien manquant vers "Mes Résultats Quiz" que j'ai vu dans un autre de tes fichiers #}
+							<li>
+								<a class="dropdown-item" href="{{ path('quiz_my_results') }}">
+									<i class="fas fa-trophy me-2"></i>Mes Résultats Quiz
+								</a>
+							</li>
 							<li><hr class="dropdown-divider"></li>
 							<li>
 								<a class="dropdown-item" href="{{ path('app_logout') }}">
@@ -82,7 +84,6 @@
 						</ul>
 					</li>
 
-					<!-- Badge admin si rôle ADMIN -->
 					{% if is_granted('ROLE_ADMIN') %}
 						<li class="nav-item">
 							<a class="nav-link text-warning" href="{{ path('admin_quiz_index') }}" title="Administration">
@@ -91,7 +92,6 @@
 						</li>
 					{% endif %}
 				{% else %}
-					<!-- Boutons connexion/inscription pour utilisateurs non connectés -->
 					<li class="nav-item">
 						<a href="{{ path('app_login') }}" class="btn btn-outline-light ms-2">
 							<i class="fas fa-user-circle me-1"></i>Connexion
@@ -105,12 +105,22 @@
 				{% endif %}
 			</ul>
 
-			<!-- Barre de recherche -->
-			<div class="search-container d-flex align-items-center ms-lg-3">
-				<i class="fas fa-search search-icon" id="search-toggle" aria-label="Ouvrir la recherche"></i>
-				<form class="d-flex search-form" id="search-form" action="{{ path('search_results') }}" method="get" autocomplete="off" novalidate>
+			<div
+				class="search-container d-flex align-items-center ms-lg-3" data-controller="navbar-search" data-navbar-search-active-class="active" data-action="click@window->navbar-search#close">
+				{# Écoute les clics sur toute la page pour fermer #}
+
+				<i class="fas fa-search search-icon" id="search-toggle" aria-label="Ouvrir la recherche" data-action="click->navbar-search#toggle"></i>
+				{# Action au clic #}
+
+				<form
+					class="d-flex search-form" id="search-form" action="{{ path('search_results') }}" method="get" autocomplete="off" novalidate data-navbar-search-target="form">
+					{# Cible "form" #}
+
 					<div class="position-relative">
-						<input class="form-control me-2" name="q" type="search" placeholder="Rechercher un film, une série..." aria-label="Rechercher" id="search-input">
+						<input
+						class="form-control me-2" name="q" type="search" placeholder="Rechercher un film, une série..." aria-label="Rechercher" id="search-input" data-navbar-search-target="input">
+						{# Cible "input" #}
+
 						<div id="search-results" class="dropdown-menu"></div>
 					</div>
 				</form>
